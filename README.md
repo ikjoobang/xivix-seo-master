@@ -1,9 +1,10 @@
-# XIVIX Naver Post Master
+# XIVIX HYBRID AGENT
 
 ## 프로젝트 개요
-- **이름**: XIVIX Naver Post Master
-- **목표**: AI 생성 원문을 네이버 블로그 최적화 형식으로 자동 변환하여 저품질 방지
-- **기술 스택**: Hono + TypeScript + TailwindCSS + Cloudflare Pages
+- **이름**: XIVIX HYBRID AGENT
+- **버전**: V4
+- **목표**: Gemini AI를 통한 1,700자+ SEO 원고 자동 생성 및 네이버 블로그 최적화
+- **기술 스택**: Hono + TypeScript + TailwindCSS + Gemini API + Cloudflare Pages
 
 ## URL
 - **미리보기**: https://3000-i0w1zx7q2xd8pqxy7ilgn-de59bda9.sandbox.novita.ai
@@ -11,38 +12,39 @@
 
 ## 주요 기능
 
-### ✅ 완료된 기능
-❶ **4가지 스타일 변환 (A~D형)**
-   - A형: 비즈니스형 (~습니다)
-   - B형: 친근한 소통형 (~해요)
-   - C형: 실용 정보형 (~요약체)
-   - D형: 스토리텔링형 (~혼합체)
+### 1. AI 생성 모드 (Gemini API)
+- **1,700자 이상** SEO 최적화 원고 자동 생성
+- **C-Rank/AEO/GEO** 최적화 구조 적용
+- **이모지 0%** 완전 제거
 
-❷ **네이버 네이티브 최적화**
-   - 이모지 제거 (저품질 방지)
-   - 네이버 스티커 삽입 가이드 자동 생성
-   - 동영상/이미지 배치 위치 자동 설정
+### 2. 스타일 선택 (A/B/C형)
+| 스타일 | 설명 | 문체 |
+|--------|------|------|
+| A형 | 전문가형 (C-Rank) | ~습니다 |
+| B형 | 친근형 (AEO) | ~해요 |
+| C형 | 실용 정보 (GEO) | 요약체 |
 
-❸ **자동 구조화**
-   - 3줄 요약 인용구 상단 배치
-   - 소제목 강조 처리
-   - 마무리 멘트 자동 삽입
+### 3. 변환 모드
+- 기존 AI 원문을 네이버 최적화 형식으로 변환
+- Q&A 구조 자동 감지
+- 네이버 가이드 자동 삽입
 
-❹ **편의 기능**
-   - 원클릭 클립보드 복사
-   - 실시간 미리보기
-   - 모바일 반응형 UI
+### 4. 미디어 연동
+- studiojuai-mp4 URL 입력 가능
+- 동영상/이미지 위치 자동 배치
 
 ## API 엔드포인트
 
-### POST /api/transform
-AI 원문을 네이버 최적화 형식으로 변환
+### POST /api/generate
+Gemini API를 통해 SEO 원고 생성
 
 **Request:**
 ```json
 {
-  "text": "변환할 원문",
-  "style": "A" // A, B, C, D 중 선택
+  "topic": "포스팅 주제",
+  "style": "A",
+  "apiKey": "Gemini API Key",
+  "mediaUrl": "미디어 URL (선택)"
 }
 ```
 
@@ -50,30 +52,45 @@ AI 원문을 네이버 최적화 형식으로 변환
 ```json
 {
   "result": "변환된 텍스트",
-  "style": "비즈니스형"
+  "rawLength": 2500,
+  "style": "전문가형 (C-Rank)"
 }
 ```
 
-### GET /api/styles
-사용 가능한 스타일 설정 조회
+### POST /api/transform
+기존 원문을 네이버 최적화 형식으로 변환
 
-## 저품질 방지 전략
-
-| 전략 | 설명 |
-|------|------|
-| **어미 가변화** | 매일 다른 스타일(A~D) 사용으로 봇 패턴 회피 |
-| **네이버 스티커** | 외부 이모지 대신 OGQ 스티커 활용 |
-| **동영상 필수** | 체류시간 증대를 위한 15초 영상 삽입 |
-| **이미지 링크** | 텍스트 링크 대비 3배 높은 클릭률 |
+**Request:**
+```json
+{
+  "text": "변환할 원문",
+  "mediaUrl": "미디어 URL (선택)"
+}
+```
 
 ## 사용 가이드
 
-1. **원문 입력**: AI가 생성한 글을 왼쪽 입력란에 붙여넣기
-2. **스타일 선택**: A~D형 버튼 중 하나 클릭 (매일 다르게!)
-3. **변환 확인**: 오른쪽에서 네이버 최적화 결과 확인
-4. **복사하기**: "전체 복사하기" 버튼 클릭
-5. **네이버 에디터**: 스마트에디터에 붙여넣기
-6. **가이드 적용**: [스티커], [동영상], [이미지] 자리에 실제 기능 삽입
+1. **API 설정**: 우측 상단 "API 설정" 버튼 클릭 → Gemini API 키 입력
+2. **주제 입력**: 포스팅 주제 입력
+3. **스타일 선택**: A/B/C형 중 선택
+4. **미디어 URL**: studiojuai-mp4에서 생성한 URL 입력 (선택)
+5. **원고 생성**: "1,700자 SEO 원고 생성" 버튼 클릭
+6. **복사**: 결과 복사 후 네이버 에디터에 붙여넣기
+7. **맞춤법 검사**: 네이버 에디터에서 [맞춤법] 버튼 클릭
+
+## Gemini API 키 발급
+1. [Google AI Studio](https://aistudio.google.com/apikey) 접속
+2. "Create API Key" 클릭
+3. 발급된 키를 앱 설정에 입력
+
+## SEO 최적화 전략
+
+| 최적화 | 설명 |
+|--------|------|
+| **C-Rank** | 1,700자+ 장문, 구조화된 정보 |
+| **AEO** | Q&A 형식, 답변 엔진 최적화 |
+| **GEO** | AI 모델이 인용하기 좋은 구조 |
+| **NO EMOJI** | 이모지 완전 제거로 저품질 방지 |
 
 ## 배포
 
@@ -83,14 +100,17 @@ AI 원문을 네이버 최적화 형식으로 변환
 npm run build
 
 # 배포
-npx wrangler pages deploy dist --project-name xivix-naver-master
+npx wrangler pages deploy dist --project-name xivix-hybrid-agent
+
+# 환경 변수 설정 (선택)
+npx wrangler pages secret put GEMINI_API_KEY --project-name xivix-hybrid-agent
 ```
 
 ## 프로젝트 구조
 ```
 webapp/
 ├── src/
-│   └── index.tsx      # Hono 서버 + HTML UI
+│   └── index.tsx      # Hono 서버 + Hybrid Agent UI
 ├── dist/              # 빌드 결과물
 ├── ecosystem.config.cjs # PM2 설정
 ├── wrangler.jsonc     # Cloudflare 설정
@@ -100,10 +120,10 @@ webapp/
 
 ## 다음 개발 단계
 - [ ] Cloudflare Pages 정식 배포
-- [ ] 사용자 템플릿 저장 기능
-- [ ] 글 히스토리 관리 (KV Storage)
-- [ ] 커스텀 스티커 위치 설정
+- [ ] 환경 변수로 GEMINI_API_KEY 관리
+- [ ] studiojuai-mp4 API 직접 연동
+- [ ] 생성 히스토리 저장 (KV Storage)
 
 ---
 
-**XIVIX Naver Post Master v1.0** | 방대표님 전용 네이티브 최적화 에디터
+**XIVIX HYBRID AGENT V4** | SEO / AEO / C-RANK / GEO | NO EMOJI

@@ -53,17 +53,17 @@ const styleConfigs = {
   C: { name: '실용 정보 (GEO)', suffix: '요약체', prompt: '데이터와 팩트 위주의 건조한 톤. 핵심만 간결하게 전달.' }
 }
 
-// V4.1: Gemini API를 통한 원고 생성
+// V4.1: Gemini API를 통한 원고 생성 (서버 환경변수만 사용)
 app.post('/api/generate', async (c) => {
-  const { topic, style, apiKey, enableReadability = true } = await c.req.json()
+  const { topic, style, enableReadability = true } = await c.req.json()
   
   if (!topic) {
     return c.json({ error: '주제를 입력해주세요.' }, 400)
   }
   
-  const geminiKey = apiKey || c.env?.GEMINI_API_KEY
+  const geminiKey = c.env?.GEMINI_API_KEY
   if (!geminiKey) {
-    return c.json({ error: 'Gemini API 키가 필요합니다. 설정에서 입력해주세요.' }, 400)
+    return c.json({ error: '서버에 API 키가 설정되어 있지 않습니다. 관리자에게 문의하세요.' }, 400)
   }
   
   const config = styleConfigs[style as keyof typeof styleConfigs] || styleConfigs.A
@@ -286,9 +286,7 @@ app.get('/', (c) => {
             <button onclick="reformatContent()" class="text-[10px] bg-gray-800 hover:bg-gray-700 px-3 py-2 rounded transition">
               <i class="fas fa-align-left mr-1"></i>여백 재정렬
             </button>
-            <button onclick="openSettings()" class="text-[10px] bg-gray-800 hover:bg-gray-700 px-3 py-2 rounded transition">
-              <i class="fas fa-cog mr-1"></i>API 설정
-            </button>
+
             <button onclick="copyToClipboard()" class="text-[10px] bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded transition">
               <i class="fas fa-copy mr-1"></i>전체 복사
             </button>
@@ -459,34 +457,7 @@ AI 생성 요약문과 가이드 틀이 겹치지 않도록 구조 통합
     </div>
   </div>
 
-  <!-- Settings Modal -->
-  <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-    <div class="bg-white rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl">
-      <div class="flex justify-between items-center mb-5">
-        <h3 class="text-lg font-bold">API 설정</h3>
-        <button onclick="closeSettings()" class="text-gray-400 hover:text-gray-600">
-          <i class="fas fa-times text-xl"></i>
-        </button>
-      </div>
-      <div class="space-y-4">
-        <div>
-          <label class="block text-sm font-bold text-gray-700 mb-2">Gemini API Key</label>
-          <input 
-            type="password"
-            id="apiKey"
-            class="w-full p-3 border border-gray-300 rounded-lg text-sm"
-            placeholder="AIza..."
-          />
-          <p class="text-xs text-gray-500 mt-2">
-            <a href="https://aistudio.google.com/apikey" target="_blank" class="text-blue-600 underline">Google AI Studio</a>에서 발급받으세요.
-          </p>
-        </div>
-        <button onclick="saveSettings()" class="w-full py-3 bg-black text-white rounded-lg font-bold hover:bg-gray-800 transition">
-          저장하기
-        </button>
-      </div>
-    </div>
-  </div>
+
 
   <!-- Toast -->
   <div id="toast" class="fixed top-4 right-4 px-5 py-3 rounded-lg shadow-lg hidden toast z-50"></div>
@@ -518,42 +489,14 @@ AI 생성 요약문과 가이드 틀이 겹치지 않도록 구조 통합
       document.getElementById('style-' + style).classList.add('active');
     }
     
-    function openSettings() {
-      document.getElementById('settings-modal').classList.remove('hidden');
-      document.getElementById('settings-modal').classList.add('flex');
-      const savedKey = localStorage.getItem('gemini_api_key');
-      if (savedKey) document.getElementById('apiKey').value = savedKey;
-    }
-    
-    function closeSettings() {
-      document.getElementById('settings-modal').classList.add('hidden');
-      document.getElementById('settings-modal').classList.remove('flex');
-    }
-    
-    function saveSettings() {
-      const apiKey = document.getElementById('apiKey').value.trim();
-      if (apiKey) {
-        localStorage.setItem('gemini_api_key', apiKey);
-        showToast('API 키가 저장되었습니다.', 'success');
-        closeSettings();
-      } else {
-        showToast('API 키를 입력해주세요.', 'warning');
-      }
-    }
+
     
     async function generateContent() {
       const topic = document.getElementById('topic').value.trim();
       const enableReadability = document.getElementById('readabilityToggle').checked;
-      const apiKey = localStorage.getItem('gemini_api_key');
       
       if (!topic) {
         showToast('주제를 입력해주세요!', 'warning');
-        return;
-      }
-      
-      if (!apiKey) {
-        showToast('먼저 API 설정에서 Gemini API 키를 입력해주세요.', 'warning');
-        openSettings();
         return;
       }
       
@@ -564,7 +507,7 @@ AI 생성 요약문과 가이드 틀이 겹치지 않도록 구조 통합
         const response = await fetch('/api/generate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ topic, style: currentStyle, apiKey, enableReadability })
+          body: JSON.stringify({ topic, style: currentStyle, enableReadability })
         });
         
         const data = await response.json();
@@ -731,9 +674,7 @@ AI 생성 요약문과 가이드 틀이 겹치지 않도록 구조 통합
       setTimeout(() => toast.classList.add('hidden'), 3500);
     }
     
-    document.getElementById('settings-modal').addEventListener('click', function(e) {
-      if (e.target === this) closeSettings();
-    });
+
   </script>
 </body>
 </html>`)

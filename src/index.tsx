@@ -9,6 +9,20 @@ const app = new Hono<{ Bindings: Bindings }>()
 
 app.use('/api/*', cors())
 
+// Health Check API
+app.get('/api/health', (c) => {
+  return c.json({
+    status: 'ok',
+    version: 'V4.2',
+    timestamp: new Date().toISOString(),
+    services: {
+      transform: 'active',
+      reformat: 'active',
+      generate: 'active (requires GEMINI_API_KEY)'
+    }
+  })
+})
+
 // V4.1: 이모지/아이콘 완전 제거 함수 (100% 텍스트 기반)
 function removeAllEmojisAndSymbols(text: string): string {
   return text

@@ -292,6 +292,9 @@ app.get('/', (c) => {
             <button onclick="copyToClipboard()" class="text-[10px] bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded transition">
               <i class="fas fa-copy mr-1"></i>전체 복사
             </button>
+            <button onclick="downloadTxt()" class="text-[10px] bg-green-600 hover:bg-green-700 px-3 py-2 rounded transition">
+              <i class="fas fa-download mr-1"></i>TXT 저장
+            </button>
           </div>
         </div>
         
@@ -681,6 +684,25 @@ AI 생성 요약문과 가이드 틀이 겹치지 않도록 구조 통합
         document.body.removeChild(textarea);
         showToast('가이드가 복사되었습니다.', 'success');
       }
+    }
+    
+    function downloadTxt() {
+      const preview = document.getElementById('preview').textContent;
+      if (!preview || preview.includes('결과가 여기에')) {
+        showToast('먼저 원고를 생성해주세요!', 'warning');
+        return;
+      }
+      
+      const blob = new Blob([preview], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'xivix_seo_' + new Date().toISOString().slice(0,10) + '.txt';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('TXT 파일이 다운로드되었습니다.', 'success');
     }
     
     function showToast(message, type = 'success') {

@@ -266,50 +266,52 @@ app.post('/api/reformat', async (c) => {
   })
 })
 
-// Main page - V5.0 UI (자연스러운 매장 직원 느낌 + 제목 생성)
+// Main page - V5.0 UI (기존 스타일 유지 + 제목 생성)
 app.get('/', (c) => {
   return c.html(`<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>XIVIX 블로그 글쓰기 V5</title>
+  <title>XIVIX SEO MASTER V5</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
-    body { font-family: 'Noto Sans KR', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+    body { font-family: 'Noto Sans KR', sans-serif; background-color: #f8f9fa; }
     .loading { display: none; }
     .loading.show { display: inline-flex; }
-    .style-btn.active { border-color: #667eea; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+    .style-btn.active { border-color: #000; background-color: #000; color: white; }
     .toast { animation: slideIn 0.3s ease-out; }
     @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-    #preview { line-height: 1.9; letter-spacing: -0.01em; }
-    .glass { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); }
+    #preview { line-height: 2.0; }
   </style>
 </head>
-<body class="p-4 md:p-6">
-  <div class="max-w-6xl mx-auto">
+<body class="min-h-screen p-4 md:p-6">
+  <div class="max-w-7xl mx-auto">
     
     <!-- Main Card -->
-    <div class="glass rounded-3xl shadow-2xl overflow-hidden">
+    <div class="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
       
       <!-- Header -->
-      <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
+      <div class="bg-gray-900 p-6 text-white">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h1 class="text-xl md:text-2xl font-black tracking-tight">XIVIX 블로그 글쓰기</h1>
-            <p class="text-xs text-indigo-200 mt-1">진짜 매장에서 쓴 것 같은 자연스러운 블로그 글</p>
+            <h1 class="text-xl md:text-2xl font-black italic tracking-tight">XIVIX SEO MASTER V5</h1>
+            <p class="text-[10px] text-gray-400 uppercase tracking-[0.2em] mt-1">Natural Tone | Auto Title | Copy Ready</p>
           </div>
           <div class="flex items-center gap-2">
-            <button onclick="copyTitle()" class="text-xs bg-white/20 hover:bg-white/30 px-3 py-2 rounded-lg transition">
+            <button onclick="copyTitle()" class="text-[10px] bg-gray-800 hover:bg-gray-700 px-3 py-2 rounded transition">
               <i class="fas fa-heading mr-1"></i>제목 복사
             </button>
-            <button onclick="copyToClipboard()" class="text-xs bg-white/20 hover:bg-white/30 px-3 py-2 rounded-lg transition">
+            <button onclick="copyToClipboard()" class="text-[10px] bg-gray-800 hover:bg-gray-700 px-3 py-2 rounded transition">
               <i class="fas fa-copy mr-1"></i>본문 복사
             </button>
-            <button onclick="copyAll()" class="text-xs bg-white hover:bg-gray-100 text-indigo-600 px-4 py-2 rounded-lg transition font-bold">
+            <button onclick="copyAll()" class="text-[10px] bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded transition">
               <i class="fas fa-clipboard mr-1"></i>전체 복사
+            </button>
+            <button onclick="downloadTxt()" class="text-[10px] bg-green-600 hover:bg-green-700 px-3 py-2 rounded transition">
+              <i class="fas fa-download mr-1"></i>TXT 저장
             </button>
           </div>
         </div>
@@ -319,44 +321,45 @@ app.get('/', (c) => {
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-0">
         
         <!-- Left Panel -->
-        <div class="lg:col-span-4 p-6 md:p-8 border-r border-gray-100 bg-gray-50/50">
+        <div class="lg:col-span-4 p-6 md:p-8 border-r border-gray-100 bg-gray-50">
           
-          <label class="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">주제 입력</label>
+          <label class="block text-[10px] font-black text-gray-400 mb-2 uppercase tracking-widest">포스팅 주제</label>
           <input 
             id="topic"
-            class="w-full p-4 border-2 border-gray-200 rounded-xl mb-5 text-sm outline-none focus:border-indigo-400 transition"
+            class="w-full p-4 border border-gray-200 rounded-xl mb-5 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
             placeholder="예: 겨울철 디퓨저 추천"
           />
           
-          <label class="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">글쓰기 스타일</label>
+          <label class="block text-[10px] font-black text-gray-400 mb-2 uppercase tracking-widest">글쓰기 스타일</label>
           <div class="space-y-2 mb-5">
-            <button onclick="selectStyle('A')" id="style-A" class="style-btn active w-full p-4 text-left rounded-xl border-2 border-gray-200 text-sm transition-all">
-              <span class="font-bold text-gray-800">사장님 스타일</span>
-              <span class="block text-gray-500 text-xs mt-1">"저희 매장에서 직접 써보니까요~"</span>
+            <button onclick="selectStyle('A')" id="style-A" class="style-btn active w-full p-3 text-left rounded-lg border border-gray-200 text-xs transition-all hover:border-gray-400">
+              <span class="font-bold">A형: 사장님 스타일</span>
+              <span class="block text-gray-500 mt-1">"저희 매장에서 직접 써보니까요~"</span>
             </button>
-            <button onclick="selectStyle('B')" id="style-B" class="style-btn w-full p-4 text-left rounded-xl border-2 border-gray-200 text-sm transition-all">
-              <span class="font-bold text-gray-800">직원 추천 스타일</span>
-              <span class="block text-gray-500 text-xs mt-1">"요즘 손님들 사이에서 인기예요~"</span>
+            <button onclick="selectStyle('B')" id="style-B" class="style-btn w-full p-3 text-left rounded-lg border border-gray-200 text-xs transition-all hover:border-gray-400">
+              <span class="font-bold">B형: 직원 추천 스타일</span>
+              <span class="block text-gray-500 mt-1">"요즘 손님들 사이에서 인기예요~"</span>
             </button>
-            <button onclick="selectStyle('C')" id="style-C" class="style-btn w-full p-4 text-left rounded-xl border-2 border-gray-200 text-sm transition-all">
-              <span class="font-bold text-gray-800">솔직 후기 스타일</span>
-              <span class="block text-gray-500 text-xs mt-1">"솔직히 처음엔 기대 안했는데요~"</span>
+            <button onclick="selectStyle('C')" id="style-C" class="style-btn w-full p-3 text-left rounded-lg border border-gray-200 text-xs transition-all hover:border-gray-400">
+              <span class="font-bold">C형: 솔직 후기 스타일</span>
+              <span class="block text-gray-500 mt-1">"솔직히 처음엔 기대 안했는데요~"</span>
             </button>
           </div>
           
           <button 
             onclick="generateContent()"
             id="generate-btn"
-            class="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-bold hover:opacity-90 transform active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg"
+            class="w-full py-4 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transform active:scale-95 transition-all flex items-center justify-center gap-2"
           >
             <i class="fas fa-spinner fa-spin loading" id="generate-loading"></i>
-            <i class="fas fa-magic" id="generate-icon"></i>
-            <span>글 생성하기</span>
+            <span id="generate-text">블로그 글 생성</span>
           </button>
           
-          <div class="mt-4 p-3 bg-indigo-50 rounded-xl text-xs text-indigo-600">
-            <i class="fas fa-lightbulb mr-1"></i>
-            <span id="status-text">주제를 입력하고 스타일을 선택하세요</span>
+          <div class="mt-5 p-3 bg-gray-100 rounded-lg">
+            <div class="flex items-center gap-2 text-xs">
+              <i class="fas fa-info-circle text-gray-400"></i>
+              <span id="status-text" class="text-gray-600">대기 중</span>
+            </div>
           </div>
         </div>
         
@@ -365,61 +368,70 @@ app.get('/', (c) => {
           
           <!-- Title Section -->
           <div class="mb-4">
-            <label class="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">생성된 제목</label>
-            <div id="title-box" class="p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border-2 border-indigo-100 text-lg font-bold text-gray-800 min-h-[56px] flex items-center">
+            <label class="block text-[10px] font-black text-gray-400 mb-2 uppercase tracking-widest">생성된 제목 (SEO 최적화)</label>
+            <div id="title-box" class="p-4 bg-blue-50 rounded-xl border border-blue-200 text-lg font-bold text-gray-800 min-h-[56px] flex items-center">
               제목이 여기에 표시됩니다
             </div>
           </div>
           
           <!-- Content Section -->
-          <div class="flex justify-between items-center mb-2">
-            <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">본문 내용</label>
-            <span id="char-count" class="text-xs text-gray-400 bg-gray-100 px-3 py-1 rounded-full">0자</span>
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-2">
+            <h3 class="text-[10px] font-black text-gray-400 tracking-[0.2em] uppercase">본문 내용</h3>
+            <span id="char-count" class="text-[10px] text-gray-400 bg-gray-100 px-3 py-1 rounded-full">0자</span>
           </div>
           
           <div
             id="preview"
-            class="w-full h-[450px] p-5 bg-white border-2 border-gray-100 rounded-xl overflow-y-auto text-sm text-gray-700 whitespace-pre-wrap"
-          >여기에 생성된 글이 표시됩니다.
+            class="w-full h-[450px] md:h-[500px] p-6 bg-white border border-gray-100 rounded-2xl overflow-y-auto text-sm text-gray-700 whitespace-pre-wrap shadow-inner"
+          >결과가 여기에 표시됩니다.
 
-복사해서 바로 네이버 블로그에 붙여넣기 하세요!
 
-[특징]
-- 매장 직원이 직접 쓴 듯한 자연스러운 톤
-- 체험단/광고 느낌 완전 제거
-- 이모지 없이 깔끔하게
-- 바로 복사해서 사용 가능</div>
+[XIVIX SEO MASTER V5 특징]
+
+1. 매장 직원이 직접 쓴 듯한 자연스러운 톤
+2. 체험단/광고 느낌 완전 제거
+3. SEO 최적화 제목 자동 생성
+4. 이모지 없이 깔끔하게
+5. 바로 복사해서 네이버 블로그에 사용 가능
+
+
+[사용 방법]
+1. 주제 입력
+2. 스타일 선택 (A/B/C형)
+3. 블로그 글 생성 클릭
+4. 전체 복사 후 네이버 에디터에 붙여넣기</div>
         </div>
       </div>
     </div>
 
-    <!-- Feature Cards -->
+    <!-- Guide Cards -->
     <div class="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
-      <div class="glass p-4 rounded-xl shadow-lg">
-        <div class="text-2xl mb-2">🏪</div>
-        <h4 class="font-bold text-gray-800 text-sm">매장 직원 톤</h4>
-        <p class="text-xs text-gray-500 mt-1">체험단 느낌 NO</p>
+      <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-red-500">
+        <h4 class="font-bold text-gray-800 text-xs mb-1">자연스러운 톤</h4>
+        <p class="text-[10px] text-gray-600">매장 직원이 직접 쓴 느낌</p>
       </div>
-      <div class="glass p-4 rounded-xl shadow-lg">
-        <div class="text-2xl mb-2">📝</div>
-        <h4 class="font-bold text-gray-800 text-sm">제목 자동 생성</h4>
-        <p class="text-xs text-gray-500 mt-1">SEO 최적화 제목</p>
+      <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-blue-500">
+        <h4 class="font-bold text-gray-800 text-xs mb-1">제목 자동 생성</h4>
+        <p class="text-[10px] text-gray-600">SEO 최적화 제목 포함</p>
       </div>
-      <div class="glass p-4 rounded-xl shadow-lg">
-        <div class="text-2xl mb-2">📋</div>
-        <h4 class="font-bold text-gray-800 text-sm">바로 복사</h4>
-        <p class="text-xs text-gray-500 mt-1">수정 없이 사용</p>
+      <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-green-500">
+        <h4 class="font-bold text-gray-800 text-xs mb-1">바로 복사</h4>
+        <p class="text-[10px] text-gray-600">수정 없이 바로 사용</p>
       </div>
-      <div class="glass p-4 rounded-xl shadow-lg">
-        <div class="text-2xl mb-2">🚫</div>
-        <h4 class="font-bold text-gray-800 text-sm">이모지 제거</h4>
-        <p class="text-xs text-gray-500 mt-1">저품질 방지</p>
+      <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-gray-500">
+        <h4 class="font-bold text-gray-800 text-xs mb-1">이모지 0%</h4>
+        <p class="text-[10px] text-gray-600">저품질 방지 완벽 대응</p>
       </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="mt-6 text-center text-gray-400 text-[10px] pb-4">
+      <p>XIVIX SEO MASTER V5 | Natural Tone | Auto Title | Copy Ready</p>
     </div>
   </div>
 
   <!-- Toast -->
-  <div id="toast" class="fixed top-4 right-4 px-5 py-3 rounded-xl shadow-lg hidden toast z-50"></div>
+  <div id="toast" class="fixed top-4 right-4 px-5 py-3 rounded-lg shadow-lg hidden toast z-50"></div>
 
   <script>
     let currentStyle = 'A';
@@ -465,9 +477,9 @@ app.get('/', (c) => {
         document.getElementById('preview').textContent = data.result;
         document.getElementById('char-count').textContent = data.result.length + '자';
         document.getElementById('status-text').textContent = 
-          '완료! (' + data.style + ', ' + data.rawLength + '자)';
+          '생성 완료 (' + data.style + ', ' + data.rawLength + '자)';
         
-        showToast('글이 생성되었습니다!', 'success');
+        showToast('블로그 글이 생성되었습니다!', 'success');
       } catch (error) {
         showToast('생성 중 오류가 발생했습니다.', 'error');
         document.getElementById('status-text').textContent = '오류 발생';
@@ -478,11 +490,9 @@ app.get('/', (c) => {
     
     function setLoading(isLoading) {
       const loading = document.getElementById('generate-loading');
-      const icon = document.getElementById('generate-icon');
       const btn = document.getElementById('generate-btn');
       
       loading.classList.toggle('show', isLoading);
-      icon.classList.toggle('hidden', isLoading);
       btn.disabled = isLoading;
       btn.classList.toggle('opacity-75', isLoading);
     }
@@ -499,7 +509,7 @@ app.get('/', (c) => {
     
     async function copyToClipboard() {
       const preview = document.getElementById('preview').textContent;
-      if (!preview || preview.includes('여기에 생성된 글이')) {
+      if (!preview || preview.includes('결과가 여기에')) {
         showToast('먼저 글을 생성해주세요!', 'warning');
         return;
       }
@@ -516,7 +526,7 @@ app.get('/', (c) => {
       const title = document.getElementById('title-box').textContent;
       const preview = document.getElementById('preview').textContent;
       
-      if (!preview || preview.includes('여기에 생성된 글이')) {
+      if (!preview || preview.includes('결과가 여기에')) {
         showToast('먼저 글을 생성해주세요!', 'warning');
         return;
       }
@@ -525,10 +535,32 @@ app.get('/', (c) => {
       
       try {
         await navigator.clipboard.writeText(fullText);
-        showToast('제목 + 본문 전체가 복사되었습니다!', 'success');
+        showToast('제목 + 본문이 복사되었습니다!', 'success');
       } catch (error) {
         fallbackCopy(fullText);
       }
+    }
+    
+    function downloadTxt() {
+      const title = document.getElementById('title-box').textContent;
+      const preview = document.getElementById('preview').textContent;
+      
+      if (!preview || preview.includes('결과가 여기에')) {
+        showToast('먼저 글을 생성해주세요!', 'warning');
+        return;
+      }
+      
+      const fullText = title + '\\n\\n' + preview;
+      const blob = new Blob([fullText], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'xivix_blog_' + new Date().toISOString().slice(0,10) + '.txt';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('TXT 파일이 다운로드되었습니다.', 'success');
     }
     
     function fallbackCopy(text) {
@@ -543,19 +575,28 @@ app.get('/', (c) => {
     
     function showToast(message, type = 'success') {
       const toast = document.getElementById('toast');
-      toast.className = 'fixed top-4 right-4 px-5 py-3 rounded-xl shadow-lg toast flex items-center gap-2 z-50';
+      toast.className = 'fixed top-4 right-4 px-5 py-3 rounded-lg shadow-lg toast flex items-center gap-2 z-50';
       
-      const colors = {
-        success: 'bg-green-500 text-white',
-        warning: 'bg-yellow-500 text-white',
-        error: 'bg-red-500 text-white'
-      };
+      let icon = '';
+      switch(type) {
+        case 'success':
+          toast.classList.add('bg-green-600', 'text-white');
+          icon = '<i class="fas fa-check-circle"></i>';
+          break;
+        case 'warning':
+          toast.classList.add('bg-yellow-500', 'text-white');
+          icon = '<i class="fas fa-exclamation-triangle"></i>';
+          break;
+        case 'error':
+          toast.classList.add('bg-red-600', 'text-white');
+          icon = '<i class="fas fa-times-circle"></i>';
+          break;
+      }
       
-      toast.classList.add(...colors[type].split(' '));
-      toast.innerHTML = '<span class="text-sm font-medium">' + message + '</span>';
+      toast.innerHTML = icon + '<span class="text-sm">' + message + '</span>';
       toast.classList.remove('hidden');
       
-      setTimeout(() => toast.classList.add('hidden'), 3000);
+      setTimeout(() => toast.classList.add('hidden'), 3500);
     }
   </script>
 </body>

@@ -13,7 +13,7 @@ app.use('/api/*', cors())
 app.get('/api/health', (c) => {
   return c.json({
     status: 'ok',
-    version: 'V4.2',
+    version: 'V5.0',
     timestamp: new Date().toISOString(),
     services: {
       transform: 'active',
@@ -23,10 +23,9 @@ app.get('/api/health', (c) => {
   })
 })
 
-// V4.1: 이모지/아이콘 완전 제거 함수 (100% 텍스트 기반)
-function removeAllEmojisAndSymbols(text: string): string {
+// V5.0: 이모지 완전 제거 (복사 붙여넣기 최적화)
+function removeAllEmojis(text: string): string {
   return text
-    // 유니코드 이모지 제거
     .replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, '')
     .replace(/[\u{1F600}-\u{1F64F}]/gu, '')
     .replace(/[\u{1F300}-\u{1F5FF}]/gu, '')
@@ -39,35 +38,38 @@ function removeAllEmojisAndSymbols(text: string): string {
     .replace(/[\u{1FA70}-\u{1FAFF}]/gu, '')
     .replace(/[\u{2600}-\u{26FF}]/gu, '')
     .replace(/[\u{2700}-\u{27BF}]/gu, '')
-    // 추가: 특수 기호들 제거
-    .replace(/[📌🎯🎬🖼️✅❶❷❸■▶✨💡📍📄💬📝✔️➡️]/g, '')
+    .replace(/[📌🎯🎬🖼️✅❶❷❸■▶✨💡📍📄💬📝✔️➡️⭐🔥💯👍🏻❤️]/g, '')
 }
 
-// V4.1: 100% 텍스트 기반 가독성 최적화 로직
-function cleanReadabilityOptimizer(text: string): string {
-  let cleaned = removeAllEmojisAndSymbols(text)
-  
-  // 문장 단위 강제 여백 (마침표 후 줄바꿈)
-  cleaned = cleaned
-    .split('. ')
-    .map(sentence => sentence.trim())
-    .filter(sentence => sentence.length > 0)
-    .join('.\n\n')
-  
-  // 불필요한 공백 중복 제거
-  cleaned = cleaned.replace(/\n{3,}/g, '\n\n')
-  
-  return cleaned.trim()
-}
-
-// 스타일 설정
+// V5.0: 스타일 설정 - 매장 직원/관리자가 직접 쓴 느낌
 const styleConfigs = {
-  A: { name: '전문가형 (C-Rank)', suffix: '습니다', prompt: '신뢰감 있는 전문가 톤으로 작성. 데이터와 근거를 명확히 제시.' },
-  B: { name: '친근형 (AEO)', suffix: '해요', prompt: '이웃과 대화하듯 부드러운 에디터 톤. 질문/답변 형식 강조.' },
-  C: { name: '실용 정보 (GEO)', suffix: '요약체', prompt: '데이터와 팩트 위주의 건조한 톤. 핵심만 간결하게 전달.' }
+  A: { 
+    name: '사장님 스타일', 
+    suffix: '요', 
+    prompt: `당신은 작은 매장을 운영하는 사장님입니다. 
+손님들에게 진심으로 추천하는 느낌으로, 너무 전문적이지 않게 편하게 말하듯 작성하세요.
+"저희 매장에서는~", "직접 써보니까~", "손님들 반응이~" 같은 표현을 자연스럽게 사용하세요.
+절대 "~습니다", "~입니다" 같은 딱딱한 존댓말 금지. "~요", "~거든요", "~더라고요" 체를 사용하세요.`
+  },
+  B: { 
+    name: '직원 추천 스타일', 
+    suffix: '요', 
+    prompt: `당신은 매장에서 일하는 직원입니다.
+고객에게 제품/서비스를 친근하게 설명하는 느낌으로 작성하세요.
+"제가 직접 써봤는데요~", "다른 분들도 많이 찾으시는~", "요즘 인기 많은~" 같은 표현을 사용하세요.
+마치 카톡으로 친구한테 추천해주는 것처럼 자연스럽게 써주세요.`
+  },
+  C: { 
+    name: '솔직 후기 스타일', 
+    suffix: '요', 
+    prompt: `당신은 직접 사용해본 일반인입니다.
+광고 같지 않게, 진짜 써본 사람의 솔직한 후기처럼 작성하세요.
+"솔직히 처음엔 별 기대 없었는데~", "근데 써보니까 진짜~", "단점도 있긴 한데~" 같은 표현을 사용하세요.
+장점만 나열하지 말고, 작은 단점도 솔직하게 언급하면서 전체적으로 긍정적인 결론을 내세요.`
+  }
 }
 
-// V4.1: Gemini API를 통한 원고 생성 (서버 환경변수만 사용)
+// V5.0: Gemini API를 통한 원고 생성 (매장 직원 느낌 + 제목 생성)
 app.post('/api/generate', async (c) => {
   const { topic, style, enableReadability = true } = await c.req.json()
   
@@ -82,22 +84,39 @@ app.post('/api/generate', async (c) => {
   
   const config = styleConfigs[style as keyof typeof styleConfigs] || styleConfigs.A
   
-  // V4.1: 강화된 프롬프트
-  const systemPrompt = `당신은 네이버 블로그 SEO 전문가입니다. 다음 조건을 반드시 지켜 글을 작성하세요:
+  // V5.0: 매장 직원/관리자 느낌의 자연스러운 프롬프트
+  const systemPrompt = `${config.prompt}
 
-1. 분량: 공백 포함 1,800자 이상의 매우 상세한 장문으로 작성
-2. 절대 조건: 모든 형태의 이모지, 특수 아이콘(별, 체크, 화살표 등) 사용 금지
-3. 문체: "${config.suffix}" 체를 일관되게 사용
-4. 톤: ${config.prompt}
-5. 구조:
-   - [서론] 주제 소개 및 독자 관심 유도 (2-3문장)
-   - [본문] 5개 이상의 소제목으로 구분하여 상세 설명
-   - [Q&A] "Q."와 "A." 형식의 질의응답 3개 이상 포함
-   - [결론] 핵심 정리 및 행동 유도
-6. 가독성: 각 단락은 2문장 내외로 매우 짧게 구성
-7. SEO: 주제 관련 키워드를 자연스럽게 반복 사용
-8. 각 소제목은 "1.", "2.", "3." 형식으로 번호를 붙이세요
-9. Q&A 섹션은 "Q." "A." 형식으로 작성하세요`
+[필수 조건]
+1. 분량: 1,500자 이상 작성
+2. 이모지/특수문자 절대 사용 금지 (별, 체크, 하트 등 전부 금지)
+3. 문체: "~${config.suffix}" 체로 통일 (예: "좋더라고요", "추천드려요", "그렇거든요")
+4. 절대 하지 말 것:
+   - "~습니다", "~입니다" 같은 딱딱한 존댓말 금지
+   - "본 포스팅은~", "오늘은 ~에 대해 알아보겠습니다" 같은 전형적인 블로그 서론 금지
+   - 번호 매기기(1. 2. 3.) 금지
+   - "Q.", "A." 형식의 Q&A 금지
+   - "[서론]", "[본문]", "[결론]" 같은 구조 표시 금지
+
+5. 반드시 할 것:
+   - 첫 문장부터 바로 본론으로 시작
+   - 마치 친한 손님에게 말하듯 자연스럽게
+   - 실제 경험담처럼 ("제가 직접 써봤는데요", "손님들 반응 보니까")
+   - 중간중간 짧은 감탄사 ("진짜", "확실히", "솔직히")
+   - 자연스러운 문단 구분 (3-4문장마다)
+
+6. 구조 (표시하지 말고 자연스럽게 흐르게):
+   - 도입: 왜 이걸 소개하게 됐는지 간단히
+   - 본문: 장점 2-3개, 사용 팁, 실제 경험
+   - 마무리: 추천 이유 정리
+
+[제목 생성]
+글 맨 위에 SEO 최적화된 매력적인 제목을 작성하세요.
+제목 형식: [제목] 실제 제목 내용
+- 검색 키워드 포함
+- 호기심 유발 (숫자, 질문, 비교 활용)
+- 15-30자 사이
+예시: [제목] 디퓨저 위치 하나 바꿨더니 잠이 쏟아지네요`
 
   try {
     const response = await fetch(
@@ -108,11 +127,11 @@ app.post('/api/generate', async (c) => {
         body: JSON.stringify({
           contents: [{
             parts: [{
-              text: `${systemPrompt}\n\n주제: ${topic}\n\n위 조건에 맞춰 네이버 블로그 포스팅을 작성해주세요.`
+              text: `${systemPrompt}\n\n주제: ${topic}\n\n위 조건에 맞춰 블로그 글을 작성해주세요.`
             }]
           }],
           generationConfig: {
-            temperature: 0.7,
+            temperature: 0.9,
             maxOutputTokens: 4096,
           }
         })
@@ -125,17 +144,46 @@ app.post('/api/generate', async (c) => {
     }
     
     const data = await response.json()
-    const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text || ''
+    let generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text || ''
     
     if (!generatedText) {
       return c.json({ error: 'AI 응답이 비어있습니다.' }, 500)
     }
     
-    // V4.1: 가독성 최적화 및 포맷팅
-    let processedText = enableReadability ? cleanReadabilityOptimizer(generatedText) : removeAllEmojisAndSymbols(generatedText)
-    const formattedResult = formatForNaverV41(processedText)
+    // 이모지 제거
+    generatedText = removeAllEmojis(generatedText)
+    
+    // 제목 추출 (여러 패턴 지원)
+    let title = ''
+    const titlePatterns = [
+      /\[제목\]\s*(.+?)(\n|$)/,
+      /^#\s*(.+?)(\n|$)/,
+      /^(.+?)(\n\n)/
+    ]
+    
+    for (const pattern of titlePatterns) {
+      const match = generatedText.match(pattern)
+      if (match && match[1].length < 50) {
+        title = match[1].trim()
+        generatedText = generatedText.replace(pattern, '').trim()
+        break
+      }
+    }
+    
+    // 제목이 없으면 첫 줄에서 추출
+    if (!title) {
+      const firstLine = generatedText.split('\n')[0]
+      if (firstLine && firstLine.length < 50) {
+        title = firstLine.trim()
+        generatedText = generatedText.substring(firstLine.length).trim()
+      }
+    }
+    
+    // V5.0: 복사 붙여넣기 최적화 (가이드 문구 없이 바로 사용 가능)
+    const formattedResult = formatForCopyPaste(generatedText, enableReadability)
     
     return c.json({ 
+      title: title,
       result: formattedResult,
       rawLength: generatedText.length,
       style: config.name,
@@ -147,6 +195,44 @@ app.post('/api/generate', async (c) => {
   }
 })
 
+// V5.0: 복사 붙여넣기 최적화 포맷팅 (가이드 문구 제거, 바로 사용 가능)
+function formatForCopyPaste(text: string, enableReadability: boolean): string {
+  let cleaned = removeAllEmojis(text)
+  
+  // 불필요한 마크다운/서식 제거
+  cleaned = cleaned
+    .replace(/\*\*/g, '')  // 볼드 제거
+    .replace(/\*/g, '')    // 이탤릭 제거
+    .replace(/#{1,6}\s/g, '')  // 헤더 마크다운 제거
+    .replace(/\[.*?\]/g, '')   // 대괄호 표시 제거
+    .replace(/---/g, '')       // 구분선 제거
+  
+  if (enableReadability) {
+    // 문단 단위로 여백 추가 (2-3문장마다)
+    const sentences = cleaned.split(/(?<=[.!?])\s+/)
+    let result = ''
+    let count = 0
+    
+    for (const sentence of sentences) {
+      result += sentence + ' '
+      count++
+      if (count >= 2 && Math.random() > 0.5) {
+        result = result.trim() + '\n\n'
+        count = 0
+      } else if (count >= 3) {
+        result = result.trim() + '\n\n'
+        count = 0
+      }
+    }
+    cleaned = result.trim()
+  }
+  
+  // 과도한 줄바꿈 정리
+  cleaned = cleaned.replace(/\n{3,}/g, '\n\n')
+  
+  return cleaned.trim()
+}
+
 // 텍스트 변환 API
 app.post('/api/transform', async (c) => {
   const { text, enableReadability = true } = await c.req.json()
@@ -155,8 +241,7 @@ app.post('/api/transform', async (c) => {
     return c.json({ error: 'text is required' }, 400)
   }
   
-  let processedText = enableReadability ? cleanReadabilityOptimizer(text) : removeAllEmojisAndSymbols(text)
-  const formattedResult = formatForNaverV41(processedText)
+  const formattedResult = formatForCopyPaste(text, enableReadability)
   
   return c.json({ 
     result: formattedResult,
@@ -173,7 +258,7 @@ app.post('/api/reformat', async (c) => {
     return c.json({ error: 'text is required' }, 400)
   }
   
-  const reformatted = cleanReadabilityOptimizer(text)
+  const reformatted = formatForCopyPaste(text, true)
   
   return c.json({ 
     result: reformatted,
@@ -181,321 +266,164 @@ app.post('/api/reformat', async (c) => {
   })
 })
 
-// V4.1: 네이버 최적화 포맷팅 (100% 텍스트 기반, 아이콘 0%)
-function formatForNaverV41(text: string): string {
-  let lines = text.split('\n').map(line => line.trim()).filter(line => line !== '')
-  let finalLines: string[] = []
-  
-  // [상단] 요약문 통합 구조 (단일화, 아이콘 없음)
-  finalLines.push('[네이버 인용구: 요약형]')
-  finalLines.push('')
-  finalLines.push('제목: 이번 포스팅 핵심 요약 3줄')
-  finalLines.push('')
-  finalLines.push('1. 전문가의 시각으로 분석한 최신 정보 제공')
-  finalLines.push('2. 독자가 바로 실천할 수 있는 구체적 팁 포함')
-  finalLines.push('3. C-Rank 알고리즘을 준수한 고품질 콘텐츠')
-  finalLines.push('')
-  finalLines.push('---')
-  finalLines.push('')
-  finalLines.push('')
-  
-  let videoInserted = false
-  const totalLines = lines.length
-  
-  lines.forEach((line, index) => {
-    // 소제목 감지 시 스티커 가이드 배치 (본문 소제목 상단에만)
-    if (line.match(/^[1-9]\./) || line.startsWith('#')) {
-      finalLines.push('')
-      finalLines.push('')
-      finalLines.push('[네이버 스티커 삽입 권장]')
-      finalLines.push('')
-      finalLines.push('**' + line.replace(/^#+\s*/, '').trim() + '**')
-      finalLines.push('')
-    }
-    // Q&A 섹션 가이드 (인용구: 말풍선형)
-    else if (line.startsWith('Q.') || line.startsWith('질문:') || line.match(/^Q\d/)) {
-      finalLines.push('')
-      finalLines.push('')
-      finalLines.push('[네이버 인용구: 말풍선형]')
-      finalLines.push('')
-      finalLines.push(line)
-      finalLines.push('')
-    }
-    // 답변 섹션
-    else if (line.startsWith('A.') || line.startsWith('답변:') || line.match(/^A\d/)) {
-      finalLines.push('')
-      finalLines.push('**' + line + '**')
-      finalLines.push('')
-      finalLines.push('')
-    }
-    // 일반 텍스트
-    else {
-      finalLines.push(line)
-      finalLines.push('')
-    }
-    
-    // 미디어 슬롯 자동 배치 (글의 1/3 지점) - 100% 텍스트
-    if (!videoInserted && index === Math.floor(totalLines / 3)) {
-      finalLines.push('')
-      finalLines.push('')
-      finalLines.push('[네이버 동영상/Shorts 삽입 영역]')
-      finalLines.push('(studiojuai-mp4 API 연동 위치)')
-      finalLines.push('')
-      finalLines.push('')
-      videoInserted = true
-    }
-  })
-  
-  // [하단] CTA 마감 (100% 텍스트 기반)
-  finalLines.push('')
-  finalLines.push('')
-  finalLines.push('---')
-  finalLines.push('')
-  finalLines.push('')
-  finalLines.push('[이미지 클릭 배너 가이드]')
-  finalLines.push('(배너 이미지 삽입 후 상담 링크 연결: XIVIX Agency)')
-  finalLines.push('')
-  finalLines.push('')
-  finalLines.push('[공감과 댓글 유도 문구]')
-  finalLines.push('궁금하신 점은 언제든 댓글로 남겨주세요.')
-  
-  return finalLines.join('\n')
-}
-
-// Main page - V4.1 UI (Pure Text, Native Guide, No Emoji)
+// Main page - V5.0 UI (자연스러운 매장 직원 느낌 + 제목 생성)
 app.get('/', (c) => {
   return c.html(`<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>XIVIX SEO MASTER V4.1</title>
+  <title>XIVIX 블로그 글쓰기 V5</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
-    body { font-family: 'Noto Sans KR', sans-serif; background-color: #f8f9fa; }
+    body { font-family: 'Noto Sans KR', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
     .loading { display: none; }
     .loading.show { display: inline-flex; }
-    .style-btn.active { border-color: #000; background-color: #000; color: white; }
+    .style-btn.active { border-color: #667eea; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
     .toast { animation: slideIn 0.3s ease-out; }
     @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-    #preview { line-height: 2.0; }
+    #preview { line-height: 1.9; letter-spacing: -0.01em; }
+    .glass { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); }
   </style>
 </head>
-<body class="min-h-screen p-4 md:p-6">
-  <div class="max-w-7xl mx-auto">
+<body class="p-4 md:p-6">
+  <div class="max-w-6xl mx-auto">
     
     <!-- Main Card -->
-    <div class="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
+    <div class="glass rounded-3xl shadow-2xl overflow-hidden">
       
       <!-- Header -->
-      <div class="bg-gray-900 p-6 text-white">
+      <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h1 class="text-xl md:text-2xl font-black italic tracking-tight">XIVIX SEO MASTER V4.1</h1>
-            <p class="text-[10px] text-gray-400 uppercase tracking-[0.2em] mt-1">Pure Text | Native Guide | No Emoji</p>
+            <h1 class="text-xl md:text-2xl font-black tracking-tight">XIVIX 블로그 글쓰기</h1>
+            <p class="text-xs text-indigo-200 mt-1">진짜 매장에서 쓴 것 같은 자연스러운 블로그 글</p>
           </div>
           <div class="flex items-center gap-2">
-            <button onclick="reformatContent()" class="text-[10px] bg-gray-800 hover:bg-gray-700 px-3 py-2 rounded transition">
-              <i class="fas fa-align-left mr-1"></i>여백 재정렬
+            <button onclick="copyTitle()" class="text-xs bg-white/20 hover:bg-white/30 px-3 py-2 rounded-lg transition">
+              <i class="fas fa-heading mr-1"></i>제목 복사
             </button>
-
-            <button onclick="copyToClipboard()" class="text-[10px] bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded transition">
-              <i class="fas fa-copy mr-1"></i>전체 복사
+            <button onclick="copyToClipboard()" class="text-xs bg-white/20 hover:bg-white/30 px-3 py-2 rounded-lg transition">
+              <i class="fas fa-copy mr-1"></i>본문 복사
             </button>
-            <button onclick="downloadTxt()" class="text-[10px] bg-green-600 hover:bg-green-700 px-3 py-2 rounded transition">
-              <i class="fas fa-download mr-1"></i>TXT 저장
+            <button onclick="copyAll()" class="text-xs bg-white hover:bg-gray-100 text-indigo-600 px-4 py-2 rounded-lg transition font-bold">
+              <i class="fas fa-clipboard mr-1"></i>전체 복사
             </button>
           </div>
-        </div>
-        
-        <!-- Tab Navigation -->
-        <div class="mt-6 flex gap-2">
-          <button onclick="switchTab('generate')" id="tab-generate" class="px-5 py-2 rounded-full text-xs font-bold transition bg-white text-black">
-            AI 생성
-          </button>
-          <button onclick="switchTab('transform')" id="tab-transform" class="px-5 py-2 rounded-full text-xs font-bold transition bg-gray-800 text-gray-300 hover:bg-gray-700">
-            변환 모드
-          </button>
         </div>
       </div>
 
       <!-- Content -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-0">
         
-        <!-- Left Panel: Controls -->
-        <div class="lg:col-span-4 p-6 md:p-8 border-r border-gray-100 bg-gray-50">
+        <!-- Left Panel -->
+        <div class="lg:col-span-4 p-6 md:p-8 border-r border-gray-100 bg-gray-50/50">
           
-          <!-- AI Generate Mode -->
-          <div id="panel-generate">
-            <label class="block text-[10px] font-black text-gray-400 mb-2 uppercase tracking-widest">포스팅 주제</label>
-            <input 
-              id="topic"
-              class="w-full p-4 border border-gray-200 rounded-xl mb-5 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-              placeholder="예: 잠 잘오는 침실 디퓨저 위치"
-            />
-            
-            <label class="block text-[10px] font-black text-gray-400 mb-2 uppercase tracking-widest">스타일 선택</label>
-            <div class="space-y-2 mb-5">
-              <button onclick="selectStyle('A')" id="style-A" class="style-btn active w-full p-3 text-left rounded-lg border border-gray-200 text-xs transition-all hover:border-gray-400">
-                <span class="font-bold">A형: 전문가형 (C-Rank)</span>
-                <span class="block text-gray-500 mt-1">신뢰감 있는 전문가 톤</span>
-              </button>
-              <button onclick="selectStyle('B')" id="style-B" class="style-btn w-full p-3 text-left rounded-lg border border-gray-200 text-xs transition-all hover:border-gray-400">
-                <span class="font-bold">B형: 친근형 (AEO)</span>
-                <span class="block text-gray-500 mt-1">이웃과 대화하는 부드러운 톤</span>
-              </button>
-              <button onclick="selectStyle('C')" id="style-C" class="style-btn w-full p-3 text-left rounded-lg border border-gray-200 text-xs transition-all hover:border-gray-400">
-                <span class="font-bold">C형: 실용 정보 (GEO)</span>
-                <span class="block text-gray-500 mt-1">데이터와 팩트 위주</span>
-              </button>
-            </div>
-            
-            <!-- Readability Toggle -->
-            <div class="mb-5 p-3 bg-blue-50 rounded-xl border border-blue-100">
-              <label class="flex items-center cursor-pointer">
-                <input type="checkbox" id="readabilityToggle" checked class="w-4 h-4 text-blue-600 rounded">
-                <span class="ml-2 text-xs font-bold text-blue-700">뭉침 방지 (가독성 최적화)</span>
-              </label>
-              <p class="text-[10px] text-blue-600 mt-1">문장마다 줄바꿈을 넣어 모바일 가독성 극대화</p>
-            </div>
-            
-            <button 
-              onclick="generateContent()"
-              id="generate-btn"
-              class="w-full py-4 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transform active:scale-95 transition-all flex items-center justify-center gap-2"
-            >
-              <i class="fas fa-spinner fa-spin loading" id="generate-loading"></i>
-              <span id="generate-text">SEO 원고 생성</span>
+          <label class="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">주제 입력</label>
+          <input 
+            id="topic"
+            class="w-full p-4 border-2 border-gray-200 rounded-xl mb-5 text-sm outline-none focus:border-indigo-400 transition"
+            placeholder="예: 겨울철 디퓨저 추천"
+          />
+          
+          <label class="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">글쓰기 스타일</label>
+          <div class="space-y-2 mb-5">
+            <button onclick="selectStyle('A')" id="style-A" class="style-btn active w-full p-4 text-left rounded-xl border-2 border-gray-200 text-sm transition-all">
+              <span class="font-bold text-gray-800">사장님 스타일</span>
+              <span class="block text-gray-500 text-xs mt-1">"저희 매장에서 직접 써보니까요~"</span>
+            </button>
+            <button onclick="selectStyle('B')" id="style-B" class="style-btn w-full p-4 text-left rounded-xl border-2 border-gray-200 text-sm transition-all">
+              <span class="font-bold text-gray-800">직원 추천 스타일</span>
+              <span class="block text-gray-500 text-xs mt-1">"요즘 손님들 사이에서 인기예요~"</span>
+            </button>
+            <button onclick="selectStyle('C')" id="style-C" class="style-btn w-full p-4 text-left rounded-xl border-2 border-gray-200 text-sm transition-all">
+              <span class="font-bold text-gray-800">솔직 후기 스타일</span>
+              <span class="block text-gray-500 text-xs mt-1">"솔직히 처음엔 기대 안했는데요~"</span>
             </button>
           </div>
           
-          <!-- Transform Mode -->
-          <div id="panel-transform" class="hidden">
-            <label class="block text-[10px] font-black text-gray-400 mb-2 uppercase tracking-widest">원문 입력</label>
-            <textarea
-              id="rawText"
-              class="w-full h-[280px] p-4 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-              placeholder="AI가 생성한 원문을 붙여넣으세요..."
-            ></textarea>
-            
-            <button 
-              onclick="transformText()"
-              id="transform-btn"
-              class="w-full mt-5 py-4 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transform active:scale-95 transition-all flex items-center justify-center gap-2"
-            >
-              <i class="fas fa-spinner fa-spin loading" id="transform-loading"></i>
-              <span>SEO 최적화 변환</span>
-            </button>
-          </div>
+          <button 
+            onclick="generateContent()"
+            id="generate-btn"
+            class="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-bold hover:opacity-90 transform active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg"
+          >
+            <i class="fas fa-spinner fa-spin loading" id="generate-loading"></i>
+            <i class="fas fa-magic" id="generate-icon"></i>
+            <span>글 생성하기</span>
+          </button>
           
-          <!-- Status -->
-          <div class="mt-5 p-3 bg-gray-100 rounded-lg">
-            <div class="flex items-center gap-2 text-xs">
-              <i class="fas fa-info-circle text-gray-400"></i>
-              <span id="status-text" class="text-gray-600">대기 중</span>
-            </div>
+          <div class="mt-4 p-3 bg-indigo-50 rounded-xl text-xs text-indigo-600">
+            <i class="fas fa-lightbulb mr-1"></i>
+            <span id="status-text">주제를 입력하고 스타일을 선택하세요</span>
           </div>
         </div>
         
-        <!-- Right Panel: Output -->
+        <!-- Right Panel -->
         <div class="lg:col-span-8 p-6 md:p-8">
-          <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-4">
-            <h3 class="text-[10px] font-black text-gray-400 tracking-[0.2em] uppercase">Final Optimized Content</h3>
-            <span id="char-count" class="text-[10px] text-gray-400 bg-gray-100 px-3 py-1 rounded-full">0자</span>
+          
+          <!-- Title Section -->
+          <div class="mb-4">
+            <label class="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">생성된 제목</label>
+            <div id="title-box" class="p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border-2 border-indigo-100 text-lg font-bold text-gray-800 min-h-[56px] flex items-center">
+              제목이 여기에 표시됩니다
+            </div>
+          </div>
+          
+          <!-- Content Section -->
+          <div class="flex justify-between items-center mb-2">
+            <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">본문 내용</label>
+            <span id="char-count" class="text-xs text-gray-400 bg-gray-100 px-3 py-1 rounded-full">0자</span>
           </div>
           
           <div
             id="preview"
-            class="w-full h-[550px] md:h-[600px] p-6 bg-white border border-gray-100 rounded-2xl overflow-y-auto text-sm text-gray-700 whitespace-pre-wrap shadow-inner"
-          >결과가 여기에 표시됩니다.
+            class="w-full h-[450px] p-5 bg-white border-2 border-gray-100 rounded-xl overflow-y-auto text-sm text-gray-700 whitespace-pre-wrap"
+          >여기에 생성된 글이 표시됩니다.
 
+복사해서 바로 네이버 블로그에 붙여넣기 하세요!
 
-[XIVIX SEO MASTER V4.1 주요 기능]
-
-
-1. 100% 텍스트 기반 가이드
-
-모든 아이콘/이모지를 텍스트로 교체하여 저품질 리스크 0%
-
-
-2. 요약문 단일화
-
-AI 생성 요약문과 가이드 틀이 겹치지 않도록 구조 통합
-
-
-3. 스티커 위치 최적화
-
-본문 소제목(Sub-heading) 상단에만 배치하여 시각적 위계 확립
-
-
-4. 강제 여백 로직 강화
-
-문장 끝 + 가이드 문구 전후에 여백 추가로 뭉침 완전 해결
-
-
-[사용 방법]
-
-1. 주제 입력
-2. 스타일 선택 (A/B/C형)
-3. SEO 원고 생성 클릭
-4. 전체 복사 후 네이버 에디터에 붙여넣기</div>
+[특징]
+- 매장 직원이 직접 쓴 듯한 자연스러운 톤
+- 체험단/광고 느낌 완전 제거
+- 이모지 없이 깔끔하게
+- 바로 복사해서 사용 가능</div>
         </div>
       </div>
     </div>
 
-    <!-- Guide Cards -->
+    <!-- Feature Cards -->
     <div class="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
-      <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-red-500">
-        <h4 class="font-bold text-gray-800 text-xs mb-1">이모지 0%</h4>
-        <p class="text-[10px] text-gray-600">100% 텍스트 기반으로 저품질 원천 차단</p>
+      <div class="glass p-4 rounded-xl shadow-lg">
+        <div class="text-2xl mb-2">🏪</div>
+        <h4 class="font-bold text-gray-800 text-sm">매장 직원 톤</h4>
+        <p class="text-xs text-gray-500 mt-1">체험단 느낌 NO</p>
       </div>
-      <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-blue-500">
-        <h4 class="font-bold text-gray-800 text-xs mb-1">뭉침 방지</h4>
-        <p class="text-[10px] text-gray-600">문장마다 줄바꿈으로 가독성 극대화</p>
+      <div class="glass p-4 rounded-xl shadow-lg">
+        <div class="text-2xl mb-2">📝</div>
+        <h4 class="font-bold text-gray-800 text-sm">제목 자동 생성</h4>
+        <p class="text-xs text-gray-500 mt-1">SEO 최적화 제목</p>
       </div>
-      <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-green-500">
-        <h4 class="font-bold text-gray-800 text-xs mb-1">C-Rank 최적화</h4>
-        <p class="text-[10px] text-gray-600">1,800자+ 장문 + 5개 소제목</p>
+      <div class="glass p-4 rounded-xl shadow-lg">
+        <div class="text-2xl mb-2">📋</div>
+        <h4 class="font-bold text-gray-800 text-sm">바로 복사</h4>
+        <p class="text-xs text-gray-500 mt-1">수정 없이 사용</p>
       </div>
-      <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-purple-500">
-        <h4 class="font-bold text-gray-800 text-xs mb-1">AEO 최적화</h4>
-        <p class="text-[10px] text-gray-600">Q&A 3개+로 답변 엔진 최적화</p>
+      <div class="glass p-4 rounded-xl shadow-lg">
+        <div class="text-2xl mb-2">🚫</div>
+        <h4 class="font-bold text-gray-800 text-sm">이모지 제거</h4>
+        <p class="text-xs text-gray-500 mt-1">저품질 방지</p>
       </div>
-    </div>
-
-    <!-- Footer -->
-    <div class="mt-6 text-center text-gray-400 text-[10px] pb-4">
-      <p>XIVIX SEO MASTER V4.1 | Pure Text | Native Guide | No Emoji</p>
     </div>
   </div>
 
-
-
   <!-- Toast -->
-  <div id="toast" class="fixed top-4 right-4 px-5 py-3 rounded-lg shadow-lg hidden toast z-50"></div>
+  <div id="toast" class="fixed top-4 right-4 px-5 py-3 rounded-xl shadow-lg hidden toast z-50"></div>
 
   <script>
     let currentStyle = 'A';
-    let currentTab = 'generate';
-    
-    function switchTab(tab) {
-      currentTab = tab;
-      document.getElementById('panel-generate').classList.toggle('hidden', tab !== 'generate');
-      document.getElementById('panel-transform').classList.toggle('hidden', tab !== 'transform');
-      
-      const genTab = document.getElementById('tab-generate');
-      const transTab = document.getElementById('tab-transform');
-      
-      if (tab === 'generate') {
-        genTab.className = 'px-5 py-2 rounded-full text-xs font-bold transition bg-white text-black';
-        transTab.className = 'px-5 py-2 rounded-full text-xs font-bold transition bg-gray-800 text-gray-300 hover:bg-gray-700';
-      } else {
-        transTab.className = 'px-5 py-2 rounded-full text-xs font-bold transition bg-white text-black';
-        genTab.className = 'px-5 py-2 rounded-full text-xs font-bold transition bg-gray-800 text-gray-300 hover:bg-gray-700';
-      }
-    }
+    let currentTitle = '';
     
     function selectStyle(style) {
       currentStyle = style;
@@ -503,25 +431,22 @@ AI 생성 요약문과 가이드 틀이 겹치지 않도록 구조 통합
       document.getElementById('style-' + style).classList.add('active');
     }
     
-
-    
     async function generateContent() {
       const topic = document.getElementById('topic').value.trim();
-      const enableReadability = document.getElementById('readabilityToggle').checked;
       
       if (!topic) {
         showToast('주제를 입력해주세요!', 'warning');
         return;
       }
       
-      setLoading('generate', true);
-      document.getElementById('status-text').textContent = '분석 중... (약 10-20초)';
+      setLoading(true);
+      document.getElementById('status-text').textContent = '글 생성 중... (약 10-15초)';
       
       try {
         const response = await fetch('/api/generate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ topic, style: currentStyle, enableReadability })
+          body: JSON.stringify({ topic, style: currentStyle, enableReadability: true })
         });
         
         const data = await response.json();
@@ -532,163 +457,106 @@ AI 생성 요약문과 가이드 틀이 겹치지 않도록 구조 통합
           return;
         }
         
+        // 제목 표시
+        currentTitle = data.title || topic;
+        document.getElementById('title-box').textContent = currentTitle;
+        
+        // 본문 표시
         document.getElementById('preview').textContent = data.result;
         document.getElementById('char-count').textContent = data.result.length + '자';
         document.getElementById('status-text').textContent = 
-          '생성 완료 (' + data.style + ', ' + data.rawLength + '자)';
+          '완료! (' + data.style + ', ' + data.rawLength + '자)';
         
-        showToast('가이드가 생성되었습니다!', 'success');
+        showToast('글이 생성되었습니다!', 'success');
       } catch (error) {
         showToast('생성 중 오류가 발생했습니다.', 'error');
         document.getElementById('status-text').textContent = '오류 발생';
       } finally {
-        setLoading('generate', false);
+        setLoading(false);
       }
     }
     
-    async function transformText() {
-      const rawText = document.getElementById('rawText').value.trim();
-      const enableReadability = document.getElementById('readabilityToggle').checked;
-      
-      if (!rawText) {
-        showToast('원문을 입력해주세요!', 'warning');
-        return;
-      }
-      
-      setLoading('transform', true);
-      document.getElementById('status-text').textContent = '변환 중...';
-      
-      try {
-        const response = await fetch('/api/transform', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: rawText, enableReadability })
-        });
-        
-        const data = await response.json();
-        
-        if (data.error) {
-          showToast(data.error, 'error');
-          return;
-        }
-        
-        document.getElementById('preview').textContent = data.result;
-        document.getElementById('char-count').textContent = data.result.length + '자';
-        document.getElementById('status-text').textContent = '변환 완료';
-        
-        showToast('변환이 완료되었습니다!', 'success');
-      } catch (error) {
-        showToast('변환 중 오류가 발생했습니다.', 'error');
-      } finally {
-        setLoading('transform', false);
-      }
-    }
-    
-    async function reformatContent() {
-      const preview = document.getElementById('preview').textContent;
-      if (!preview || preview.includes('결과가 여기에')) {
-        showToast('먼저 원고를 생성해주세요!', 'warning');
-        return;
-      }
-      
-      try {
-        const response = await fetch('/api/reformat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: preview })
-        });
-        
-        const data = await response.json();
-        
-        if (data.error) {
-          showToast(data.error, 'error');
-          return;
-        }
-        
-        document.getElementById('preview').textContent = data.result;
-        document.getElementById('char-count').textContent = data.result.length + '자';
-        showToast('여백 재정렬 완료!', 'success');
-      } catch (error) {
-        showToast('재정렬 중 오류가 발생했습니다.', 'error');
-      }
-    }
-    
-    function setLoading(type, isLoading) {
-      const loading = document.getElementById(type + '-loading');
-      const btn = document.getElementById(type + '-btn');
+    function setLoading(isLoading) {
+      const loading = document.getElementById('generate-loading');
+      const icon = document.getElementById('generate-icon');
+      const btn = document.getElementById('generate-btn');
       
       loading.classList.toggle('show', isLoading);
+      icon.classList.toggle('hidden', isLoading);
       btn.disabled = isLoading;
       btn.classList.toggle('opacity-75', isLoading);
     }
     
+    function copyTitle() {
+      const title = document.getElementById('title-box').textContent;
+      if (!title || title.includes('제목이 여기에')) {
+        showToast('먼저 글을 생성해주세요!', 'warning');
+        return;
+      }
+      navigator.clipboard.writeText(title);
+      showToast('제목이 복사되었습니다!', 'success');
+    }
+    
     async function copyToClipboard() {
       const preview = document.getElementById('preview').textContent;
-      if (!preview || preview.includes('결과가 여기에')) {
-        showToast('먼저 원고를 생성해주세요!', 'warning');
+      if (!preview || preview.includes('여기에 생성된 글이')) {
+        showToast('먼저 글을 생성해주세요!', 'warning');
         return;
       }
       
       try {
         await navigator.clipboard.writeText(preview);
-        showToast('가이드가 복사되었습니다. 네이버 에디터에 붙여넣으세요.', 'success');
+        showToast('본문이 복사되었습니다!', 'success');
       } catch (error) {
-        const textarea = document.createElement('textarea');
-        textarea.value = preview;
-        document.body.appendChild(textarea);
-        textarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
-        showToast('가이드가 복사되었습니다.', 'success');
+        fallbackCopy(preview);
       }
     }
     
-    function downloadTxt() {
+    async function copyAll() {
+      const title = document.getElementById('title-box').textContent;
       const preview = document.getElementById('preview').textContent;
-      if (!preview || preview.includes('결과가 여기에')) {
-        showToast('먼저 원고를 생성해주세요!', 'warning');
+      
+      if (!preview || preview.includes('여기에 생성된 글이')) {
+        showToast('먼저 글을 생성해주세요!', 'warning');
         return;
       }
       
-      const blob = new Blob([preview], { type: 'text/plain;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'xivix_seo_' + new Date().toISOString().slice(0,10) + '.txt';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      showToast('TXT 파일이 다운로드되었습니다.', 'success');
+      const fullText = title + '\\n\\n' + preview;
+      
+      try {
+        await navigator.clipboard.writeText(fullText);
+        showToast('제목 + 본문 전체가 복사되었습니다!', 'success');
+      } catch (error) {
+        fallbackCopy(fullText);
+      }
+    }
+    
+    function fallbackCopy(text) {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      showToast('복사되었습니다!', 'success');
     }
     
     function showToast(message, type = 'success') {
       const toast = document.getElementById('toast');
-      toast.className = 'fixed top-4 right-4 px-5 py-3 rounded-lg shadow-lg toast flex items-center gap-2 z-50';
+      toast.className = 'fixed top-4 right-4 px-5 py-3 rounded-xl shadow-lg toast flex items-center gap-2 z-50';
       
-      let icon = '';
-      switch(type) {
-        case 'success':
-          toast.classList.add('bg-green-600', 'text-white');
-          icon = '<i class="fas fa-check-circle"></i>';
-          break;
-        case 'warning':
-          toast.classList.add('bg-yellow-500', 'text-white');
-          icon = '<i class="fas fa-exclamation-triangle"></i>';
-          break;
-        case 'error':
-          toast.classList.add('bg-red-600', 'text-white');
-          icon = '<i class="fas fa-times-circle"></i>';
-          break;
-      }
+      const colors = {
+        success: 'bg-green-500 text-white',
+        warning: 'bg-yellow-500 text-white',
+        error: 'bg-red-500 text-white'
+      };
       
-      toast.innerHTML = icon + '<span class="text-sm">' + message + '</span>';
+      toast.classList.add(...colors[type].split(' '));
+      toast.innerHTML = '<span class="text-sm font-medium">' + message + '</span>';
       toast.classList.remove('hidden');
       
-      setTimeout(() => toast.classList.add('hidden'), 3500);
+      setTimeout(() => toast.classList.add('hidden'), 3000);
     }
-    
-
   </script>
 </body>
 </html>`)

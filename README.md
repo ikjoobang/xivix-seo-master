@@ -1,60 +1,69 @@
-# XIVIX SEO MASTER V4.1
+# XIVIX SEO MASTER V5.2
 
 ## 프로젝트 개요
-- **이름**: XIVIX SEO MASTER V4.1
-- **버전**: V4.1 (Pure Text | Native Guide | No Emoji)
-- **목표**: Gemini AI를 통한 1,800자+ SEO 원고 자동 생성 및 네이버 블로그 최적화
+- **이름**: XIVIX SEO MASTER V5.2
+- **버전**: V5.2 (SEO/AEO/C-Rank/GEO 완전 최적화)
+- **목표**: 주제 입력 → **제목 + 본문 + 해시태그** 자동 생성 (네이버 블로그 SEO 최적화)
 - **기술 스택**: Hono + TypeScript + TailwindCSS + Gemini API + Cloudflare Pages
 
 ## URL
-- **Production**: https://xivix-seo-master.pages.dev
-- **상태**: ✅ 배포 완료
+- **Production (메인 페이지)**: https://xivix-seo-master.pages.dev
+- **Health Check API**: https://xivix-seo-master.pages.dev/api/health
+- **상태**: ✅ 배포 완료 (Active)
 
-## 주요 기능
+## 핵심 기능 (V5.2)
 
-### 1. 이모지 0% (100% 텍스트 기반)
+### 1. 주제 → 제목/본문/해시태그 자동 생성
+- 주제 입력 시 **SEO 최적화 제목 자동 생성** (숫자, 감정, 클릭베이트 포함)
+- **1,500자 이상** 네이버 최적화 본문 자동 생성
+- **15~20개 해시태그** 자동 생성
+- 예시: `겨울철 디퓨저 추천` → `향기로 5도 높이는 마법! 겨울 추위 녹이는 꿀팁 디퓨저 (내돈내산)`
+
+### 2. 이모지 0% (100% 텍스트 기반)
 - 모든 이모지/아이콘 완전 제거
-- `[네이버 인용구]`, `[스티커 삽입]` 등 텍스트 가이드로 대체
 - 저품질 리스크 원천 차단
 
-### 2. AI 생성 모드 (Gemini API)
-- **1,800자 이상** SEO 최적화 원고 자동 생성
-- **C-Rank/AEO/GEO** 최적화 구조 적용
-- 5개 이상 소제목 + 3개 이상 Q&A 구조
-
 ### 3. 스타일 선택 (A/B/C형)
-| 스타일 | 설명 | 문체 |
+| 스타일 | 설명 | 특징 |
 |--------|------|------|
-| A형 | 전문가형 (C-Rank) | ~습니다 |
-| B형 | 친근형 (AEO) | ~해요 |
-| C형 | 실용 정보 (GEO) | 요약체 |
+| A형 | 사장님 스타일 | 전문적, 신뢰감 |
+| B형 | 직원 추천 스타일 | 친근함, 공감대 |
+| C형 | 솔직 후기 스타일 | 진솔함, 리뷰형 |
 
-### 4. 뭉침 방지 (가독성 최적화)
-- 문장마다 자동 줄바꿈 (`\n\n`)
-- 모바일 2-3줄 단위 가독성 극대화
-- 강제 여백 재정렬 버튼
-
-### 5. 변환 모드
-- 기존 AI 원문을 네이버 최적화 형식으로 변환
-- Q&A 구조 자동 감지 (말풍선형 인용구 적용)
-- 네이버 가이드 자동 삽입
-
-### 6. 편의 기능
-- **전체 복사**: 원클릭 클립보드 복사
+### 4. 복사/저장 기능
+- **제목만 복사**: 제목 클립보드 복사
+- **본문만 복사**: 본문 클립보드 복사
+- **해시태그만 복사**: 해시태그 클립보드 복사
+- **전체 복사**: 제목+본문+해시태그 일괄 복사
 - **TXT 저장**: 파일 다운로드 (날짜 포함 파일명)
-- **여백 재정렬**: 뭉침 방지 재적용
 
 ## API 엔드포인트
 
+### GET /api/health
+서버 상태 및 서비스 가용성 확인
+
+**Response:**
+```json
+{
+  "status": "ok",
+  "version": "V5.2",
+  "timestamp": "2025-12-23T00:00:00.000Z",
+  "services": {
+    "transform": "active",
+    "reformat": "active",
+    "generate": "active (requires GEMINI_API_KEY)"
+  }
+}
+```
+
 ### POST /api/generate
-Gemini API를 통해 SEO 원고 생성
+Gemini API를 통해 **제목 + 본문 + 해시태그** 생성
 
 **Request:**
 ```json
 {
   "topic": "포스팅 주제",
   "style": "A",
-  "apiKey": "Gemini API Key",
   "enableReadability": true
 }
 ```
@@ -62,9 +71,11 @@ Gemini API를 통해 SEO 원고 생성
 **Response:**
 ```json
 {
-  "result": "변환된 텍스트",
-  "rawLength": 2500,
-  "style": "전문가형 (C-Rank)",
+  "title": "SEO 최적화 제목",
+  "content": "1,500자+ 본문",
+  "hashtags": "#해시태그1, #해시태그2, ...",
+  "rawLength": 2200,
+  "style": "사장님 스타일",
   "readabilityApplied": true
 }
 ```
@@ -92,20 +103,19 @@ Gemini API를 통해 SEO 원고 생성
 
 ## 사용 가이드
 
-1. **API 설정**: 우측 상단 "API 설정" 버튼 클릭 → Gemini API 키 입력
-2. **주제 입력**: 포스팅 주제 입력
-3. **스타일 선택**: A/B/C형 중 선택
-4. **뭉침 방지**: 체크박스 ON 권장 (모바일 가독성)
-5. **원고 생성**: "SEO 원고 생성" 버튼 클릭
-6. **복사/저장**: "전체 복사" 또는 "TXT 저장"
-7. **네이버 에디터**: 붙여넣기 후 맞춤법 검사
+1. **주제 입력**: 블로그 포스팅 주제 입력
+2. **스타일 선택**: A/B/C형 중 선택
+3. **뭉침 방지**: 체크박스 ON 권장 (모바일 가독성)
+4. **블로그 글 생성**: 버튼 클릭 → 제목/본문/해시태그 자동 생성
+5. **복사/저장**: 제목/본문/해시태그 각각 복사 또는 TXT 저장
+6. **네이버 에디터**: 붙여넣기 후 맞춤법 검사
 
-## Gemini API 키 발급
-1. [Google AI Studio](https://aistudio.google.com/apikey) 접속
-2. "Create API Key" 클릭
-3. 발급된 키를 앱 설정에 입력
-
-**주의**: API 키가 노출되면 자동으로 비활성화됩니다. 새 키를 발급받아 사용하세요.
+## API 키 관리 (보안)
+- **API 키는 서버에만 저장** (Cloudflare Secrets)
+- 클라이언트에서 API 키 노출 불가
+- 키 교체 방법:
+  1. Cloudflare Dashboard → Workers & Pages → xivix-seo-master → Settings → Variables and Secrets
+  2. 또는: `npx wrangler pages secret put GEMINI_API_KEY --project-name xivix-seo-master`
 
 ## SEO 최적화 전략
 
@@ -188,14 +198,20 @@ webapp/
 └── README.md          # 문서
 ```
 
+## V5.2 업데이트 내역
+- ✅ 주제 → SEO 최적화 제목 자동 생성 (클릭베이트 스타일)
+- ✅ 1,500자+ 본문 자동 생성
+- ✅ 15~20개 해시태그 자동 생성
+- ✅ 제목/본문/해시태그 개별 복사 버튼
+- ✅ API 키 보안 강화 (서버 환경변수만 사용)
+- ✅ Health Check API 추가
+- ✅ 이모지 0% 완전 제거
+
 ## V4.1 업데이트 내역
-- ✅ 100% 텍스트 기반 가이드 (이모지/아이콘 완전 제거)
-- ✅ 요약문 단일화 (중복 제거)
-- ✅ 스티커 위치 최적화 (소제목 상단만)
-- ✅ 강제 여백 로직 강화
-- ✅ TXT 다운로드 기능 추가
+- ✅ 100% 텍스트 기반 가이드
+- ✅ TXT 다운로드 기능
 - ✅ Cloudflare Pages 정식 배포
 
 ---
 
-**XIVIX SEO MASTER V4.1** | Pure Text | Native Guide | No Emoji
+**XIVIX SEO MASTER V5.2** | SEO/AEO/C-Rank/GEO | No Emoji

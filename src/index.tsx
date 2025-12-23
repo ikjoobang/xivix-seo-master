@@ -13,7 +13,7 @@ app.use('/api/*', cors())
 app.get('/api/health', (c) => {
   return c.json({
     status: 'ok',
-    version: 'V6.0',
+    version: 'V7.0',
     timestamp: new Date().toISOString(),
     services: {
       transform: 'active',
@@ -179,22 +179,22 @@ SEO 최적화된 클릭하고 싶은 제목 (15-30자, 숫자/질문/감정 활�
 본문 작성 시 아래 가이드를 적절한 위치에 삽입하세요:
 
 1. 글 시작 부분 (인트로 후):
-[📷 이미지 삽입 권장: 주제를 대표하는 메인 이미지]
+[이미지 삽입: 주제를 대표하는 메인 이미지]
 
 2. 각 소제목 시작 부분:
-[📷 이미지 삽입 권장: 해당 섹션 관련 이미지]
+[이미지 삽입: 해당 섹션 관련 이미지]
 
 3. 본문 1/3 지점:
-[🎬 동영상/Shorts 삽입 권장: 관련 영상 콘텐츠]
+[동영상 삽입: 관련 영상 콘텐츠]
 
 4. 본문 2/3 지점:
-[😊 이모티콘/스티커 삽입 권장: 네이버 스티커로 포인트]
+[스티커 삽입: 네이버 스티커로 포인트]
 
 5. Q&A 섹션:
-[💬 인용구 삽입 권장: 네이버 인용구 기능 활용]
+[인용구 삽입: 네이버 인용구 기능 활용]
 
 6. 글 마무리 부분:
-[🖼️ 배너/CTA 이미지 삽입 권장: 상담/구매 유도 이미지]
+[배너 삽입: 상담/구매 유도 이미지]
 
 [제목 작성 규칙]
 - 주제를 그대로 쓰지 말고 클릭하고 싶은 제목으로 변환
@@ -291,11 +291,7 @@ SEO 최적화된 클릭하고 싶은 제목 (15-30자, 숫자/질문/감정 활�
     
     // 순수 글자수 계산 (미디어 가이드 제외)
     const pureTextLength = formattedContent
-      .replace(/\[📷[^\]]*\]/g, '')
-      .replace(/\[🎬[^\]]*\]/g, '')
-      .replace(/\[😊[^\]]*\]/g, '')
-      .replace(/\[💬[^\]]*\]/g, '')
-      .replace(/\[🖼️[^\]]*\]/g, '')
+      .replace(/\[[^\]]*삽입[^\]]*\]/g, '')
       .replace(/\s+/g, ' ')
       .trim().length
     
@@ -339,7 +335,6 @@ app.post('/api/bulk-generate', async (c) => {
   
   for (const topic of topics) {
     try {
-      // 각 주제에 대해 생성 API 호출 (내부 로직 재사용)
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`,
         {
@@ -525,141 +520,735 @@ app.post('/api/reformat', async (c) => {
   })
 })
 
-// Main page - V6.0 UI
+// Main page - V7.0 UI (Typography & Visual Hierarchy System - No Purple)
 app.get('/', (c) => {
   return c.html(`<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>XIVIX SEO MASTER V6.0</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>XIVIX SEO MASTER</title>
   <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
-    body { font-family: 'Noto Sans KR', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+    /* =========================================
+       XIVIX V7.0 - Typography & Visual Hierarchy
+       Color Scheme: Naver Green + Neutral Tones
+       NO PURPLE - User Preference
+       ========================================= */
+    
+    :root {
+      /* Primary Colors - Naver Brand */
+      --naver-green: #03C75A;
+      --naver-green-dark: #02b351;
+      --naver-green-light: #e8f7ee;
+      
+      /* Accent Colors (No Purple) */
+      --accent-orange: #FF6B35;
+      --accent-blue: #3b82f6;
+      --accent-teal: #10b981;
+      
+      /* Neutral Colors */
+      --black: #1a1a1a;
+      --gray-900: #2d2d2d;
+      --gray-700: #4a4a4a;
+      --gray-600: #666666;
+      --gray-500: #888888;
+      --gray-400: #999999;
+      --gray-300: #cccccc;
+      --gray-200: #e0e0e0;
+      --gray-100: #f0f0f0;
+      --gray-50: #fafafa;
+      --white: #ffffff;
+      
+      /* Typography Scale */
+      --font-xs: 11px;
+      --font-sm: 12px;
+      --font-base: 14px;
+      --font-md: 15px;
+      --font-lg: 16px;
+      --font-xl: 18px;
+      --font-2xl: 20px;
+      --font-3xl: 24px;
+      
+      /* Spacing */
+      --space-xs: 4px;
+      --space-sm: 8px;
+      --space-md: 12px;
+      --space-lg: 16px;
+      --space-xl: 20px;
+      --space-2xl: 24px;
+      
+      /* Border Radius */
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 12px;
+      --radius-xl: 16px;
+      
+      /* Shadows */
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+      --shadow-md: 0 4px 20px rgba(0,0,0,0.08);
+      --shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
+    }
+    
+    /* Reset & Base */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: var(--gray-700);
+      word-break: keep-all;
+      background-color: var(--gray-100);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    
+    /* Mobile First Typography */
+    @media (max-width: 768px) {
+      body {
+        font-size: 17px;
+        line-height: 1.65;
+        letter-spacing: -0.02em;
+      }
+      .container { padding: 0 var(--space-lg); }
+    }
+    
+    /* Desktop Typography */
+    @media (min-width: 769px) {
+      body {
+        font-size: var(--font-lg);
+        line-height: 1.6;
+        letter-spacing: -0.01em;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 40px;
+      }
+    }
+    
+    /* Links */
+    a { 
+      color: var(--naver-green); 
+      text-decoration: none; 
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    a:hover { 
+      text-decoration: underline; 
+      color: var(--naver-green-dark);
+    }
+    
+    /* Strong Text */
+    strong, b { font-weight: 700; color: var(--black); }
+    
+    /* Card Component */
+    .card {
+      background: var(--white);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+    }
+    
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, var(--black) 0%, var(--gray-900) 100%);
+      padding: var(--space-xl) var(--space-2xl);
+      color: var(--white);
+    }
+    
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: var(--space-md);
+    }
+    
+    .header h1 {
+      font-size: var(--font-2xl);
+      font-weight: 900;
+      letter-spacing: -0.03em;
+    }
+    
+    .header-subtitle {
+      font-size: var(--font-xs);
+      color: rgba(255,255,255,0.6);
+      margin-top: var(--space-xs);
+    }
+    
+    .header-actions {
+      display: flex;
+      gap: var(--space-sm);
+      flex-wrap: wrap;
+    }
+    
+    @media (min-width: 769px) {
+      .header { padding: var(--space-2xl) 32px; }
+      .header h1 { font-size: var(--font-3xl); }
+    }
+    
+    /* Tabs */
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--gray-200);
+      overflow-x: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+    
+    .tab-btn {
+      flex: 1;
+      min-width: 90px;
+      padding: var(--space-lg);
+      font-size: var(--font-sm);
+      font-weight: 500;
+      color: var(--gray-600);
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    
+    .tab-btn:hover {
+      color: var(--naver-green);
+    }
+    
+    .tab-btn.active {
+      color: var(--naver-green);
+      border-bottom-color: var(--naver-green);
+      font-weight: 700;
+    }
+    
+    /* Panel Layout */
+    .panel-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+    }
+    
+    @media (min-width: 1024px) {
+      .panel-grid {
+        grid-template-columns: 380px 1fr;
+      }
+    }
+    
+    .left-panel {
+      padding: var(--space-xl);
+      background: var(--gray-50);
+      border-right: 1px solid var(--gray-200);
+    }
+    
+    .right-panel {
+      padding: var(--space-xl);
+    }
+    
+    @media (min-width: 769px) {
+      .left-panel, .right-panel { padding: var(--space-2xl); }
+    }
+    
+    /* Labels */
+    .label {
+      font-size: var(--font-xs);
+      font-weight: 700;
+      color: var(--gray-500);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: var(--space-sm);
+    }
+    
+    /* Button Grid */
+    .btn-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-sm);
+      margin-bottom: var(--space-lg);
+    }
+    
+    /* Category & Tone Buttons */
+    .cat-btn, .tone-btn {
+      padding: var(--space-md);
+      font-size: var(--font-sm);
+      font-weight: 500;
+      text-align: left;
+      background: var(--white);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .cat-btn:hover, .tone-btn:hover {
+      border-color: var(--naver-green);
+    }
+    
+    .cat-btn.active {
+      border-color: var(--naver-green);
+      background: var(--naver-green-light);
+      color: var(--naver-green);
+    }
+    
+    .tone-btn.active {
+      border-color: var(--black);
+      background: var(--black);
+      color: var(--white);
+    }
+    
+    .cat-btn i, .tone-btn i {
+      margin-right: var(--space-sm);
+    }
+    
+    .btn-desc {
+      display: block;
+      font-size: var(--font-xs);
+      color: var(--gray-400);
+      margin-top: var(--space-xs);
+    }
+    
+    .tone-btn.active .btn-desc {
+      color: rgba(255,255,255,0.7);
+    }
+    
+    /* Input Fields */
+    .input {
+      width: 100%;
+      padding: var(--space-lg);
+      font-size: var(--font-md);
+      font-family: inherit;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-md);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      margin-bottom: var(--space-md);
+    }
+    
+    .input:focus {
+      border-color: var(--naver-green);
+      box-shadow: 0 0 0 3px rgba(3, 199, 90, 0.1);
+    }
+    
+    .textarea {
+      width: 100%;
+      padding: var(--space-lg);
+      font-size: var(--font-md);
+      font-family: inherit;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-md);
+      outline: none;
+      resize: vertical;
+      min-height: 160px;
+      margin-bottom: var(--space-md);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    
+    .textarea:focus {
+      border-color: var(--naver-green);
+      box-shadow: 0 0 0 3px rgba(3, 199, 90, 0.1);
+    }
+    
+    /* Primary Button */
+    .btn-primary {
+      width: 100%;
+      padding: var(--space-lg);
+      font-size: var(--font-md);
+      font-weight: 700;
+      font-family: inherit;
+      color: var(--white);
+      background: var(--naver-green);
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+    
+    .btn-primary:hover {
+      background: var(--naver-green-dark);
+    }
+    
+    .btn-primary:active {
+      transform: scale(0.98);
+    }
+    
+    .btn-primary:disabled {
+      background: var(--gray-300);
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .btn-primary.orange {
+      background: var(--accent-orange);
+    }
+    
+    .btn-primary.orange:hover {
+      background: #e55a28;
+    }
+    
+    .btn-primary.dark {
+      background: var(--black);
+    }
+    
+    .btn-primary.dark:hover {
+      background: var(--gray-900);
+    }
+    
+    /* Result Box */
+    .result-box {
+      background: var(--white);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--space-lg);
+      overflow: hidden;
+    }
+    
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--space-md) var(--space-lg);
+      border-bottom: 1px solid var(--gray-200);
+      background: var(--gray-50);
+    }
+    
+    .result-title {
+      font-size: var(--font-sm);
+      font-weight: 700;
+      color: var(--gray-600);
+    }
+    
+    /* Copy Button */
+    .copy-btn {
+      padding: var(--space-sm) var(--space-lg);
+      font-size: var(--font-sm);
+      font-weight: 600;
+      font-family: inherit;
+      color: var(--white);
+      background: var(--naver-green);
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .copy-btn:hover {
+      background: var(--naver-green-dark);
+    }
+    
+    .copy-btn.dark {
+      background: var(--black);
+    }
+    
+    .copy-btn.dark:hover {
+      background: var(--gray-900);
+    }
+    
+    .result-content {
+      padding: var(--space-lg);
+      font-size: var(--font-md);
+      line-height: 1.7;
+      min-height: 56px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .result-content:hover {
+      background: var(--gray-50);
+    }
+    
+    /* Preview Box */
+    .preview-box {
+      padding: var(--space-xl);
+      height: 320px;
+      overflow-y: auto;
+      font-size: var(--font-md);
+      line-height: 1.8;
+      white-space: pre-wrap;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    @media (min-width: 769px) {
+      .preview-box { height: 380px; }
+    }
+    
+    .preview-box:hover {
+      background: var(--gray-50);
+    }
+    
+    /* Hashtag Box */
+    .hashtag-content {
+      padding: var(--space-lg);
+      font-size: var(--font-base);
+      color: var(--naver-green);
+      line-height: 1.9;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .hashtag-content:hover {
+      background: var(--naver-green-light);
+    }
+    
+    /* Action Row */
+    .action-row {
+      display: flex;
+      gap: var(--space-md);
+      margin-top: var(--space-lg);
+    }
+    
+    .action-btn {
+      flex: 1;
+      padding: var(--space-lg);
+      font-size: var(--font-base);
+      font-weight: 700;
+      font-family: inherit;
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .action-btn.primary {
+      color: var(--white);
+      background: var(--naver-green);
+    }
+    
+    .action-btn.primary:hover {
+      background: var(--naver-green-dark);
+    }
+    
+    .action-btn.secondary {
+      color: var(--white);
+      background: var(--black);
+    }
+    
+    .action-btn.secondary:hover {
+      background: var(--gray-900);
+    }
+    
+    /* Status Box */
+    .status-box {
+      margin-top: var(--space-lg);
+      padding: var(--space-md) var(--space-lg);
+      background: var(--gray-100);
+      border-radius: var(--radius-sm);
+      font-size: var(--font-sm);
+      color: var(--gray-600);
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+    
+    /* Info Cards */
+    .info-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-sm);
+      margin-top: var(--space-xl);
+    }
+    
+    @media (min-width: 769px) {
+      .info-cards {
+        grid-template-columns: repeat(6, 1fr);
+        gap: var(--space-md);
+      }
+    }
+    
+    .info-card {
+      background: var(--white);
+      padding: var(--space-lg);
+      border-radius: var(--radius-md);
+      border-left: 3px solid;
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .info-card h4 {
+      font-size: var(--font-sm);
+      font-weight: 700;
+      color: var(--gray-700);
+      margin-bottom: var(--space-xs);
+    }
+    
+    .info-card p {
+      font-size: var(--font-xs);
+      color: var(--gray-500);
+    }
+    
+    /* Footer */
+    .footer {
+      margin-top: var(--space-2xl);
+      padding: var(--space-xl);
+      text-align: center;
+      font-size: var(--font-sm);
+      color: var(--gray-500);
+    }
+    
+    .footer a {
+      color: var(--naver-green);
+      font-weight: 700;
+    }
+    
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      top: var(--space-xl);
+      right: var(--space-xl);
+      padding: var(--space-lg) var(--space-xl);
+      background: var(--black);
+      color: var(--white);
+      border-radius: var(--radius-md);
+      font-size: var(--font-base);
+      font-weight: 500;
+      box-shadow: var(--shadow-lg);
+      z-index: 9999;
+      animation: slideIn 0.3s ease-out;
+      display: none;
+    }
+    
+    .toast.success { background: var(--naver-green); }
+    .toast.warning { background: var(--accent-orange); }
+    .toast.error { background: #dc3545; }
+    .toast.show { display: flex; align-items: center; gap: var(--space-sm); }
+    
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    
+    /* Loading Spinner */
     .loading { display: none; }
-    .loading.show { display: inline-flex; }
-    .category-btn.active { border-color: #3b82f6; background-color: #eff6ff; color: #1d4ed8; }
-    .tone-btn.active { border-color: #10b981; background-color: #ecfdf5; color: #059669; }
-    .toast { animation: slideIn 0.3s ease-out; }
-    @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-    #preview { line-height: 2.0; }
-    .tab-btn.active { background-color: #1f2937; color: white; }
-    .media-guide { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 8px 12px; margin: 8px 0; font-size: 12px; color: #92400e; }
-    .gradient-text { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .loading.show { display: inline-block; }
+    
+    /* Hidden */
+    .hidden { display: none !important; }
+    
+    /* Char Count */
+    .char-count {
+      display: inline-flex;
+      gap: var(--space-sm);
+      font-size: var(--font-sm);
+    }
+    
+    .char-count span {
+      padding: var(--space-xs) var(--space-md);
+      border-radius: 20px;
+      background: var(--gray-100);
+      color: var(--gray-600);
+    }
+    
+    .char-count .pure {
+      background: var(--naver-green-light);
+      color: var(--naver-green);
+      font-weight: 600;
+    }
+    
+    /* Dark Mode Support */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --gray-50: #1e1e1e;
+        --gray-100: #252525;
+        --gray-200: #333333;
+        --gray-600: #aaaaaa;
+        --gray-700: #e0e0e0;
+        --white: #121212;
+      }
+      
+      body { background-color: #121212; color: #e0e0e0; }
+      .card { background: #1e1e1e; }
+      .left-panel { background: #171717; border-color: #333; }
+      .result-box { background: #1e1e1e; border-color: #333; }
+      .result-header { background: #171717; border-color: #333; }
+      .input, .textarea { background: #1e1e1e; border-color: #333; color: #e0e0e0; }
+      .cat-btn, .tone-btn { background: #1e1e1e; border-color: #333; color: #e0e0e0; }
+      .cat-btn.active { background: #0a3d1f; border-color: #03C75A; }
+      .preview-box:hover, .result-content:hover { background: #252525; }
+      .status-box { background: #252525; }
+      .info-card { background: #1e1e1e; }
+      strong, b { color: #fff; }
+      a { color: #05d662; }
+    }
   </style>
 </head>
-<body class="p-2 md:p-4">
-  <div class="max-w-7xl mx-auto">
+<body>
+  <div class="container" style="padding-top: 20px; padding-bottom: 40px;">
     
     <!-- Main Card -->
-    <div class="bg-white rounded-2xl md:rounded-3xl shadow-2xl overflow-hidden">
+    <div class="card">
       
       <!-- Header -->
-      <div class="bg-gradient-to-r from-gray-900 to-gray-800 p-4 md:p-6 text-white">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 md:gap-4">
+      <div class="header">
+        <div class="header-content">
           <div>
-            <h1 class="text-lg md:text-2xl font-black italic tracking-tight">XIVIX SEO MASTER V6.0</h1>
-            <p class="text-[9px] md:text-[10px] text-gray-400 uppercase tracking-[0.15em] md:tracking-[0.2em] mt-1">SEO | AEO | C-Rank | GEO | 네이버 상위노출</p>
+            <h1>XIVIX SEO MASTER</h1>
+            <p class="header-subtitle">SEO | AEO | C-Rank | GEO | V7.0</p>
           </div>
-          <div class="flex items-center gap-1 md:gap-2 flex-wrap">
-            <button onclick="copyTitle()" class="text-[9px] md:text-[10px] bg-gray-800 hover:bg-gray-700 px-2 md:px-3 py-1.5 md:py-2 rounded transition">
-              <i class="fas fa-heading mr-1"></i>제목
-            </button>
-            <button onclick="copyToClipboard()" class="text-[9px] md:text-[10px] bg-gray-800 hover:bg-gray-700 px-2 md:px-3 py-1.5 md:py-2 rounded transition">
-              <i class="fas fa-copy mr-1"></i>본문
-            </button>
-            <button onclick="copyHashtags()" class="text-[9px] md:text-[10px] bg-purple-600 hover:bg-purple-700 px-2 md:px-3 py-1.5 md:py-2 rounded transition">
-              <i class="fas fa-hashtag mr-1"></i>태그
-            </button>
-            <button onclick="copyAll()" class="text-[9px] md:text-[10px] bg-blue-600 hover:bg-blue-700 px-2 md:px-3 py-1.5 md:py-2 rounded transition">
-              <i class="fas fa-clipboard mr-1"></i>전체
-            </button>
-            <button onclick="downloadTxt()" class="text-[9px] md:text-[10px] bg-green-600 hover:bg-green-700 px-2 md:px-3 py-1.5 md:py-2 rounded transition">
-              <i class="fas fa-download mr-1"></i>TXT
-            </button>
+          <div class="header-actions">
+            <button onclick="copyTitle()" class="copy-btn dark">제목</button>
+            <button onclick="copyToClipboard()" class="copy-btn dark">본문</button>
+            <button onclick="copyHashtags()" class="copy-btn">태그</button>
+            <button onclick="copyAll()" class="copy-btn">전체</button>
+            <button onclick="downloadTxt()" class="copy-btn dark">TXT</button>
           </div>
         </div>
       </div>
-
-      <!-- Tab Navigation -->
-      <div class="flex border-b border-gray-200 overflow-x-auto">
-        <button onclick="switchTab('generate')" id="tab-generate" class="tab-btn active flex-1 min-w-[100px] py-3 text-xs md:text-sm font-medium text-center transition-all">
-          <i class="fas fa-pen-fancy mr-1"></i>글 생성
-        </button>
-        <button onclick="switchTab('bulk')" id="tab-bulk" class="tab-btn flex-1 min-w-[100px] py-3 text-xs md:text-sm font-medium text-gray-500 text-center transition-all">
-          <i class="fas fa-layer-group mr-1"></i>대량 생성
-        </button>
-        <button onclick="switchTab('keyword')" id="tab-keyword" class="tab-btn flex-1 min-w-[100px] py-3 text-xs md:text-sm font-medium text-gray-500 text-center transition-all">
-          <i class="fas fa-search mr-1"></i>키워드 찾기
-        </button>
-        <button onclick="switchTab('rewrite')" id="tab-rewrite" class="tab-btn flex-1 min-w-[100px] py-3 text-xs md:text-sm font-medium text-gray-500 text-center transition-all">
-          <i class="fas fa-sync-alt mr-1"></i>새로 쓰기
-        </button>
+      
+      <!-- Tabs -->
+      <div class="tabs">
+        <button onclick="switchTab('generate')" id="tab-generate" class="tab-btn active">글 생성</button>
+        <button onclick="switchTab('bulk')" id="tab-bulk" class="tab-btn">대량 생성</button>
+        <button onclick="switchTab('keyword')" id="tab-keyword" class="tab-btn">키워드</button>
+        <button onclick="switchTab('rewrite')" id="tab-rewrite" class="tab-btn">새로 쓰기</button>
       </div>
-
-      <!-- Content Panels -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-0">
+      
+      <!-- Panel Grid -->
+      <div class="panel-grid">
         
         <!-- Left Panel -->
-        <div class="lg:col-span-4 p-4 md:p-6 border-r border-gray-100 bg-gray-50">
+        <div class="left-panel">
           
           <!-- Generate Tab -->
           <div id="panel-generate" class="tab-panel">
-            <!-- Category Selection -->
-            <label class="block text-[9px] md:text-[10px] font-black text-gray-400 mb-2 uppercase tracking-widest">카테고리 선택</label>
-            <div class="grid grid-cols-2 gap-2 mb-4">
-              <button onclick="selectCategory('info')" id="cat-info" class="category-btn active p-2 md:p-3 rounded-lg border border-gray-200 text-[10px] md:text-xs text-left transition-all hover:border-blue-300">
-                <i class="fas fa-info-circle mr-1 text-blue-500"></i>정보성
+            <p class="label">카테고리</p>
+            <div class="btn-grid">
+              <button onclick="selectCategory('info')" id="cat-info" class="cat-btn active">
+                <i class="fas fa-info-circle" style="color: #03C75A;"></i>정보성
               </button>
-              <button onclick="selectCategory('review')" id="cat-review" class="category-btn p-2 md:p-3 rounded-lg border border-gray-200 text-[10px] md:text-xs text-left transition-all hover:border-blue-300">
-                <i class="fas fa-star mr-1 text-yellow-500"></i>후기성
+              <button onclick="selectCategory('review')" id="cat-review" class="cat-btn">
+                <i class="fas fa-star" style="color: #fbbf24;"></i>후기성
               </button>
-              <button onclick="selectCategory('product')" id="cat-product" class="category-btn p-2 md:p-3 rounded-lg border border-gray-200 text-[10px] md:text-xs text-left transition-all hover:border-blue-300">
-                <i class="fas fa-shopping-bag mr-1 text-pink-500"></i>제품 홍보
+              <button onclick="selectCategory('product')" id="cat-product" class="cat-btn">
+                <i class="fas fa-shopping-bag" style="color: #ec4899;"></i>제품홍보
               </button>
-              <button onclick="selectCategory('youtube')" id="cat-youtube" class="category-btn p-2 md:p-3 rounded-lg border border-gray-200 text-[10px] md:text-xs text-left transition-all hover:border-blue-300">
-                <i class="fab fa-youtube mr-1 text-red-500"></i>유튜브 요약
-              </button>
-            </div>
-            
-            <!-- Tone Selection -->
-            <label class="block text-[9px] md:text-[10px] font-black text-gray-400 mb-2 uppercase tracking-widest">문체 선택</label>
-            <div class="grid grid-cols-2 gap-2 mb-4">
-              <button onclick="selectTone('haeyo')" id="tone-haeyo" class="tone-btn active p-2 md:p-3 rounded-lg border border-gray-200 text-[10px] md:text-xs text-left transition-all hover:border-green-300">
-                <span class="font-bold">해요체</span>
-                <span class="block text-gray-500 mt-0.5 text-[9px]">~해요, ~거든요</span>
-              </button>
-              <button onclick="selectTone('formal')" id="tone-formal" class="tone-btn p-2 md:p-3 rounded-lg border border-gray-200 text-[10px] md:text-xs text-left transition-all hover:border-green-300">
-                <span class="font-bold">습니다체</span>
-                <span class="block text-gray-500 mt-0.5 text-[9px]">~합니다, ~입니다</span>
+              <button onclick="selectCategory('youtube')" id="cat-youtube" class="cat-btn">
+                <i class="fab fa-youtube" style="color: #ef4444;"></i>유튜브
               </button>
             </div>
             
-            <!-- Topic Input -->
-            <label class="block text-[9px] md:text-[10px] font-black text-gray-400 mb-2 uppercase tracking-widest">포스팅 주제</label>
-            <input 
-              id="topic"
-              class="w-full p-3 md:p-4 border border-gray-200 rounded-xl mb-3 md:mb-4 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-              placeholder="예: 겨울철 디퓨저 추천"
-            />
-            
-            <!-- YouTube URL (conditional) -->
-            <div id="youtube-input" class="hidden mb-3 md:mb-4">
-              <label class="block text-[9px] md:text-[10px] font-black text-gray-400 mb-2 uppercase tracking-widest">유튜브 URL (선택)</label>
-              <input 
-                id="youtube-url"
-                class="w-full p-3 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-red-500"
-                placeholder="https://youtube.com/..."
-              />
+            <p class="label">문체</p>
+            <div class="btn-grid">
+              <button onclick="selectTone('haeyo')" id="tone-haeyo" class="tone-btn active">
+                해요체
+                <span class="btn-desc">~해요, ~거든요</span>
+              </button>
+              <button onclick="selectTone('formal')" id="tone-formal" class="tone-btn">
+                습니다체
+                <span class="btn-desc">~합니다, ~입니다</span>
+              </button>
             </div>
             
-            <button 
-              onclick="generateContent()"
-              id="generate-btn"
-              class="w-full py-3 md:py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-bold hover:from-blue-700 hover:to-purple-700 transform active:scale-95 transition-all flex items-center justify-center gap-2 text-sm md:text-base"
-            >
+            <p class="label">포스팅 주제</p>
+            <input id="topic" class="input" placeholder="예: 겨울철 디퓨저 추천" />
+            
+            <div id="youtube-input" class="hidden">
+              <p class="label">유튜브 URL (선택)</p>
+              <input id="youtube-url" class="input" placeholder="https://youtube.com/..." />
+            </div>
+            
+            <button onclick="generateContent()" id="generate-btn" class="btn-primary">
               <i class="fas fa-spinner fa-spin loading" id="generate-loading"></i>
               <span id="generate-text">블로그 글 생성</span>
             </button>
@@ -667,35 +1256,19 @@ app.get('/', (c) => {
           
           <!-- Bulk Tab -->
           <div id="panel-bulk" class="tab-panel hidden">
-            <label class="block text-[9px] md:text-[10px] font-black text-gray-400 mb-2 uppercase tracking-widest">주제 목록 (줄바꿈으로 구분)</label>
-            <textarea 
-              id="bulk-topics"
-              class="w-full p-3 md:p-4 border border-gray-200 rounded-xl mb-3 md:mb-4 text-sm outline-none focus:ring-2 focus:ring-blue-500 h-40 md:h-48"
-              placeholder="겨울철 디퓨저 추천&#10;봄철 알레르기 예방법&#10;여름 에어컨 청소&#10;(최대 10개)"
-            ></textarea>
-            <button 
-              onclick="bulkGenerate()"
-              id="bulk-btn"
-              class="w-full py-3 md:py-4 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl font-bold hover:from-orange-600 hover:to-red-600 transform active:scale-95 transition-all flex items-center justify-center gap-2 text-sm md:text-base"
-            >
+            <p class="label">주제 목록 (줄바꿈 구분, 최대 10개)</p>
+            <textarea id="bulk-topics" class="textarea" placeholder="겨울철 디퓨저 추천&#10;봄철 알레르기 예방법&#10;여름 에어컨 청소"></textarea>
+            <button onclick="bulkGenerate()" id="bulk-btn" class="btn-primary orange">
               <i class="fas fa-spinner fa-spin loading" id="bulk-loading"></i>
-              <span id="bulk-text">대량 생성 시작</span>
+              <span id="bulk-text">대량 생성</span>
             </button>
           </div>
           
           <!-- Keyword Tab -->
           <div id="panel-keyword" class="tab-panel hidden">
-            <label class="block text-[9px] md:text-[10px] font-black text-gray-400 mb-2 uppercase tracking-widest">메인 키워드</label>
-            <input 
-              id="main-keyword"
-              class="w-full p-3 md:p-4 border border-gray-200 rounded-xl mb-3 md:mb-4 text-sm outline-none focus:ring-2 focus:ring-green-500"
-              placeholder="예: 디퓨저 추천"
-            />
-            <button 
-              onclick="findKeywords()"
-              id="keyword-btn"
-              class="w-full py-3 md:py-4 bg-gradient-to-r from-green-500 to-teal-500 text-white rounded-xl font-bold hover:from-green-600 hover:to-teal-600 transform active:scale-95 transition-all flex items-center justify-center gap-2 text-sm md:text-base"
-            >
+            <p class="label">메인 키워드</p>
+            <input id="main-keyword" class="input" placeholder="예: 디퓨저 추천" />
+            <button onclick="findKeywords()" id="keyword-btn" class="btn-primary">
               <i class="fas fa-spinner fa-spin loading" id="keyword-loading"></i>
               <span id="keyword-text">스마트블록 키워드 찾기</span>
             </button>
@@ -703,141 +1276,117 @@ app.get('/', (c) => {
           
           <!-- Rewrite Tab -->
           <div id="panel-rewrite" class="tab-panel hidden">
-            <label class="block text-[9px] md:text-[10px] font-black text-gray-400 mb-2 uppercase tracking-widest">원본 글</label>
-            <textarea 
-              id="original-text"
-              class="w-full p-3 md:p-4 border border-gray-200 rounded-xl mb-3 md:mb-4 text-sm outline-none focus:ring-2 focus:ring-purple-500 h-40 md:h-48"
-              placeholder="새로 쓸 원본 글을 붙여넣으세요..."
-            ></textarea>
-            <button 
-              onclick="rewriteContent()"
-              id="rewrite-btn"
-              class="w-full py-3 md:py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-bold hover:from-purple-600 hover:to-pink-600 transform active:scale-95 transition-all flex items-center justify-center gap-2 text-sm md:text-base"
-            >
+            <p class="label">원본 글</p>
+            <textarea id="original-text" class="textarea" placeholder="새로 쓸 원본 글을 붙여넣으세요..."></textarea>
+            <button onclick="rewriteContent()" id="rewrite-btn" class="btn-primary dark">
               <i class="fas fa-spinner fa-spin loading" id="rewrite-loading"></i>
               <span id="rewrite-text">새로운 글로 변환</span>
             </button>
           </div>
           
           <!-- Status -->
-          <div class="mt-4 md:mt-5 p-3 bg-gray-100 rounded-lg">
-            <div class="flex items-center gap-2 text-xs">
-              <i class="fas fa-info-circle text-gray-400"></i>
-              <span id="status-text" class="text-gray-600">대기 중</span>
-            </div>
+          <div class="status-box">
+            <i class="fas fa-info-circle" style="margin-right: 6px;"></i>
+            <span id="status-text">대기 중</span>
           </div>
         </div>
         
         <!-- Right Panel -->
-        <div class="lg:col-span-8 p-4 md:p-6">
+        <div class="right-panel">
           
-          <!-- Title Section -->
-          <div class="mb-3 md:mb-4">
-            <div class="flex justify-between items-center mb-2">
-              <label class="text-[9px] md:text-[10px] font-black text-gray-400 uppercase tracking-widest">생성된 제목 (SEO 최적화)</label>
-              <button onclick="copyTitle()" class="text-[9px] md:text-[10px] bg-blue-100 text-blue-700 hover:bg-blue-200 px-3 py-1 rounded-full transition font-medium">
-                제목 복사
-              </button>
+          <!-- Title Result -->
+          <div class="result-box">
+            <div class="result-header">
+              <span class="result-title">생성된 제목 (SEO 최적화)</span>
+              <button onclick="copyTitle()" class="copy-btn">제목 복사</button>
             </div>
-            <div id="title-box" class="p-3 md:p-4 bg-blue-50 rounded-xl border border-blue-200 text-base md:text-lg font-bold text-gray-800 min-h-[48px] md:min-h-[56px] flex items-center cursor-pointer hover:bg-blue-100 transition" onclick="copyTitle()">
+            <div id="title-box" class="result-content" onclick="copyTitle()">
               제목이 여기에 표시됩니다
             </div>
           </div>
           
-          <!-- Content Section -->
-          <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 md:gap-3 mb-2">
-            <h3 class="text-[9px] md:text-[10px] font-black text-gray-400 tracking-[0.15em] md:tracking-[0.2em] uppercase">본문 내용 (네이버 모바일 최적화)</h3>
-            <div class="flex gap-2 items-center">
-              <span id="char-count" class="text-[9px] md:text-[10px] text-gray-400 bg-gray-100 px-2 md:px-3 py-1 rounded-full">0자</span>
-              <span id="pure-char-count" class="text-[9px] md:text-[10px] text-green-600 bg-green-100 px-2 md:px-3 py-1 rounded-full">순수: 0자</span>
-              <button onclick="copyToClipboard()" class="text-[9px] md:text-[10px] bg-gray-700 text-white hover:bg-gray-800 px-3 py-1 rounded-full transition font-medium">
-                본문 복사
-              </button>
+          <!-- Content Result -->
+          <div class="result-box">
+            <div class="result-header">
+              <span class="result-title">본문 (네이버 모바일 최적화)</span>
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <div class="char-count">
+                  <span id="char-count">0자</span>
+                  <span class="pure" id="pure-char-count">순수 0자</span>
+                </div>
+                <button onclick="copyToClipboard()" class="copy-btn dark">본문 복사</button>
+              </div>
             </div>
-          </div>
-          
-          <div
-            id="preview"
-            class="w-full h-[280px] md:h-[350px] p-4 md:p-6 bg-white border border-gray-100 rounded-2xl overflow-y-auto text-sm text-gray-700 whitespace-pre-wrap shadow-inner mb-3 md:mb-4"
-            style="line-height: 2.2;"
-          >본문이 여기에 표시됩니다.
+            <div id="preview" class="preview-box" onclick="copyToClipboard()">본문이 여기에 표시됩니다.
 
 네이버 모바일 앱 최적화:
-- 2-3문장마다 자동 줄바꿈
-- line-height 2.2 적용
-- 모바일에서 읽기 편한 구조
+■ 2-3문장마다 자동 줄바꿈
+■ 모바일에서 읽기 편한 구조
 
 미디어 삽입 위치 표시:
 [이미지 삽입] - 이미지 넣을 위치
-[동영상 삽입] - 영상/Shorts 넣을 위치
-[스티커 삽입] - 네이버 스티커 넣을 위치
-[인용구 삽입] - 네이버 인용구 활용 위치</div>
-          
-          <!-- Hashtag Section -->
-          <div class="mb-2">
-            <div class="flex justify-between items-center mb-2">
-              <h3 class="text-[9px] md:text-[10px] font-black text-gray-400 tracking-[0.15em] md:tracking-[0.2em] uppercase">해시태그 (SEO 최적화)</h3>
-              <button onclick="copyHashtags()" class="text-[9px] md:text-[10px] bg-purple-600 text-white hover:bg-purple-700 px-3 py-1 rounded-full transition font-medium">
-                해시태그 복사
-              </button>
-            </div>
-            <div
-              id="hashtags"
-              class="p-3 md:p-4 bg-purple-50 rounded-xl border border-purple-200 text-xs md:text-sm text-purple-800 min-h-[50px] md:min-h-[60px] cursor-pointer hover:bg-purple-100 transition"
-              onclick="copyHashtags()"
-            >해시태그가 여기에 표시됩니다</div>
+[동영상 삽입] - 영상 넣을 위치
+[스티커 삽입] - 네이버 스티커 위치
+[인용구 삽입] - 인용구 활용 위치</div>
           </div>
           
-          <!-- Copy All & Download Buttons -->
-          <div class="flex gap-2 mt-4">
-            <button onclick="copyAll()" class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition text-sm">
-              전체 복사 (제목+본문+해시태그)
-            </button>
-            <button onclick="downloadTxt()" class="py-3 px-6 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition text-sm">
-              TXT 저장
-            </button>
+          <!-- Hashtag Result -->
+          <div class="result-box">
+            <div class="result-header">
+              <span class="result-title">해시태그 (SEO 최적화)</span>
+              <button onclick="copyHashtags()" class="copy-btn">해시태그 복사</button>
+            </div>
+            <div id="hashtags" class="hashtag-content" onclick="copyHashtags()">
+              해시태그가 여기에 표시됩니다
+            </div>
+          </div>
+          
+          <!-- Action Buttons -->
+          <div class="action-row">
+            <button onclick="copyAll()" class="action-btn primary">전체 복사 (제목+본문+해시태그)</button>
+            <button onclick="downloadTxt()" class="action-btn secondary">TXT 저장</button>
           </div>
         </div>
       </div>
     </div>
-
-    <!-- Guide Cards -->
-    <div class="mt-4 md:mt-6 grid grid-cols-3 md:grid-cols-6 gap-2 md:gap-3">
-      <div class="bg-white p-3 md:p-4 rounded-xl shadow-sm border-l-4 border-red-500">
-        <h4 class="font-bold text-gray-800 text-[10px] md:text-xs mb-0.5 md:mb-1">SEO</h4>
-        <p class="text-[8px] md:text-[10px] text-gray-600">검색 최적화</p>
+    
+    <!-- Info Cards -->
+    <div class="info-cards">
+      <div class="info-card" style="border-color: #03C75A;">
+        <h4>SEO</h4>
+        <p>검색 최적화</p>
       </div>
-      <div class="bg-white p-3 md:p-4 rounded-xl shadow-sm border-l-4 border-blue-500">
-        <h4 class="font-bold text-gray-800 text-[10px] md:text-xs mb-0.5 md:mb-1">AEO</h4>
-        <p class="text-[8px] md:text-[10px] text-gray-600">Q&A 최적화</p>
+      <div class="info-card" style="border-color: #3b82f6;">
+        <h4>AEO</h4>
+        <p>Q&A 최적화</p>
       </div>
-      <div class="bg-white p-3 md:p-4 rounded-xl shadow-sm border-l-4 border-purple-500">
-        <h4 class="font-bold text-gray-800 text-[10px] md:text-xs mb-0.5 md:mb-1">C-RANK</h4>
-        <p class="text-[8px] md:text-[10px] text-gray-600">전문성 구조</p>
+      <div class="info-card" style="border-color: #1a1a1a;">
+        <h4>C-RANK</h4>
+        <p>전문성 구조</p>
       </div>
-      <div class="bg-white p-3 md:p-4 rounded-xl shadow-sm border-l-4 border-green-500">
-        <h4 class="font-bold text-gray-800 text-[10px] md:text-xs mb-0.5 md:mb-1">GEO</h4>
-        <p class="text-[8px] md:text-[10px] text-gray-600">AI 인용 최적화</p>
+      <div class="info-card" style="border-color: #10b981;">
+        <h4>GEO</h4>
+        <p>AI 인용 최적화</p>
       </div>
-      <div class="bg-white p-3 md:p-4 rounded-xl shadow-sm border-l-4 border-orange-500">
-        <h4 class="font-bold text-gray-800 text-[10px] md:text-xs mb-0.5 md:mb-1">1,700자+</h4>
-        <p class="text-[8px] md:text-[10px] text-gray-600">순수 본문</p>
+      <div class="info-card" style="border-color: #FF6B35;">
+        <h4>1,700자+</h4>
+        <p>순수 본문</p>
       </div>
-      <div class="bg-white p-3 md:p-4 rounded-xl shadow-sm border-l-4 border-gray-500">
-        <h4 class="font-bold text-gray-800 text-[10px] md:text-xs mb-0.5 md:mb-1">이모지 0%</h4>
-        <p class="text-[8px] md:text-[10px] text-gray-600">저품질 방지</p>
+      <div class="info-card" style="border-color: #6b7280;">
+        <h4>이모지 0%</h4>
+        <p>저품질 방지</p>
       </div>
     </div>
-
+    
     <!-- Footer -->
-    <div class="mt-4 md:mt-6 text-center text-white/70 text-[9px] md:text-[10px] pb-4">
-      <p>XIVIX SEO MASTER V6.0 | 네이버 블로그 상단(1위) 노출 최적화</p>
+    <div class="footer">
+      <a href="https://xivix.kr/" target="_blank">XIVIX</a> | © 2026. ALL RIGHTS RESERVED.
     </div>
   </div>
-
+  
   <!-- Toast -->
-  <div id="toast" class="fixed top-4 right-4 px-4 md:px-5 py-2 md:py-3 rounded-lg shadow-lg hidden toast z-50 text-sm"></div>
-
+  <div id="toast" class="toast"></div>
+  
   <script>
     let currentCategory = 'info';
     let currentTone = 'haeyo';
@@ -853,10 +1402,8 @@ app.get('/', (c) => {
     
     function selectCategory(cat) {
       currentCategory = cat;
-      document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
       document.getElementById('cat-' + cat).classList.add('active');
-      
-      // Show YouTube URL input for youtube category
       document.getElementById('youtube-input').classList.toggle('hidden', cat !== 'youtube');
     }
     
@@ -882,13 +1429,7 @@ app.get('/', (c) => {
         const response = await fetch('/api/generate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            topic, 
-            category: currentCategory, 
-            tone: currentTone,
-            youtubeUrl,
-            enableReadability: true 
-          })
+          body: JSON.stringify({ topic, category: currentCategory, tone: currentTone, youtubeUrl, enableReadability: true })
         });
         
         const data = await response.json();
@@ -939,7 +1480,6 @@ app.get('/', (c) => {
           return;
         }
         
-        // Display bulk results
         let resultHtml = '=== 대량 생성 결과 ===\\n\\n';
         data.results.forEach((r, i) => {
           resultHtml += '--- ' + (i+1) + '. ' + r.topic + ' ---\\n';
@@ -1014,13 +1554,7 @@ app.get('/', (c) => {
         const response = await fetch('/api/generate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            topic: '원본 글 재작성',
-            category: 'rewrite',
-            tone: currentTone,
-            originalText,
-            enableReadability: true 
-          })
+          body: JSON.stringify({ topic: '원본 글 재작성', category: 'rewrite', tone: currentTone, originalText, enableReadability: true })
         });
         
         const data = await response.json();
@@ -1044,23 +1578,17 @@ app.get('/', (c) => {
       document.getElementById('title-box').textContent = currentTitle;
       document.getElementById('preview').textContent = data.content || '';
       document.getElementById('char-count').textContent = (data.rawLength || 0) + '자';
-      document.getElementById('pure-char-count').textContent = '순수: ' + (data.pureTextLength || 0) + '자';
+      document.getElementById('pure-char-count').textContent = '순수 ' + (data.pureTextLength || 0) + '자';
       document.getElementById('hashtags').textContent = data.hashtags || '';
-      document.getElementById('status-text').textContent = 
-        '생성 완료 (' + (data.category || '') + ', ' + (data.tone || '') + ', ' + (data.pureTextLength || 0) + '자)';
-      
+      document.getElementById('status-text').textContent = '생성 완료 (' + (data.category || '') + ', ' + (data.tone || '') + ', ' + (data.pureTextLength || 0) + '자)';
       showToast('제목 + 본문 + 해시태그가 생성되었습니다!', 'success');
     }
     
     function setLoading(type, isLoading) {
       const loading = document.getElementById(type + '-loading');
       const btn = document.getElementById(type + '-btn');
-      
       if (loading) loading.classList.toggle('show', isLoading);
-      if (btn) {
-        btn.disabled = isLoading;
-        btn.classList.toggle('opacity-75', isLoading);
-      }
+      if (btn) btn.disabled = isLoading;
     }
     
     function copyTitle() {
@@ -1089,7 +1617,6 @@ app.get('/', (c) => {
         showToast('먼저 글을 생성해주세요!', 'warning');
         return;
       }
-      
       try {
         await navigator.clipboard.writeText(preview);
         showToast('본문이 복사되었습니다!', 'success');
@@ -1109,7 +1636,6 @@ app.get('/', (c) => {
       }
       
       const fullText = title + '\\n\\n' + preview + '\\n\\n' + hashtags;
-      
       try {
         await navigator.clipboard.writeText(fullText);
         showToast('전체 내용이 복사되었습니다!', 'success');
@@ -1153,28 +1679,9 @@ app.get('/', (c) => {
     
     function showToast(message, type = 'success') {
       const toast = document.getElementById('toast');
-      toast.className = 'fixed top-4 right-4 px-4 md:px-5 py-2 md:py-3 rounded-lg shadow-lg toast flex items-center gap-2 z-50 text-sm';
-      
-      let icon = '';
-      switch(type) {
-        case 'success':
-          toast.classList.add('bg-green-600', 'text-white');
-          icon = '<i class="fas fa-check-circle"></i>';
-          break;
-        case 'warning':
-          toast.classList.add('bg-yellow-500', 'text-white');
-          icon = '<i class="fas fa-exclamation-triangle"></i>';
-          break;
-        case 'error':
-          toast.classList.add('bg-red-600', 'text-white');
-          icon = '<i class="fas fa-times-circle"></i>';
-          break;
-      }
-      
-      toast.innerHTML = icon + '<span>' + message + '</span>';
-      toast.classList.remove('hidden');
-      
-      setTimeout(() => toast.classList.add('hidden'), 3500);
+      toast.className = 'toast ' + type + ' show';
+      toast.innerHTML = '<i class="fas fa-' + (type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : 'times-circle') + '"></i>' + message;
+      setTimeout(() => toast.classList.remove('show'), 3500);
     }
   </script>
 </body>

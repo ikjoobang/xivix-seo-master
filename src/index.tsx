@@ -13,7 +13,7 @@ app.use('/api/*', cors())
 app.get('/api/health', (c) => {
   return c.json({
     status: 'ok',
-    version: 'V5.0',
+    version: 'V5.1',
     timestamp: new Date().toISOString(),
     services: {
       transform: 'active',
@@ -84,39 +84,48 @@ app.post('/api/generate', async (c) => {
   
   const config = styleConfigs[style as keyof typeof styleConfigs] || styleConfigs.A
   
-  // V5.0: 매장 직원/관리자 느낌의 자연스러운 프롬프트
+  // V5.1: SEO/AEO/C-Rank/GEO 최적화 프롬프트 (제목 + 내용 + 해시태그)
   const systemPrompt = `${config.prompt}
 
-[필수 조건]
-1. 분량: 1,500자 이상 작성
-2. 이모지/특수문자 절대 사용 금지 (별, 체크, 하트 등 전부 금지)
-3. 문체: "~${config.suffix}" 체로 통일 (예: "좋더라고요", "추천드려요", "그렇거든요")
-4. 절대 하지 말 것:
-   - "~습니다", "~입니다" 같은 딱딱한 존댓말 금지
-   - "본 포스팅은~", "오늘은 ~에 대해 알아보겠습니다" 같은 전형적인 블로그 서론 금지
+[출력 형식 - 반드시 이 형식으로 출력]
+===제목===
+(SEO 최적화 제목 - 검색 키워드 포함, 호기심 유발, 15-30자)
+
+===본문===
+(1,500자 이상의 블로그 본문)
+
+===해시태그===
+(SEO 최적화 해시태그 15-20개, 띄어쓰기 없이 #태그 형식)
+
+[SEO/AEO/C-Rank/GEO 최적화 조건]
+1. 제목 최적화:
+   - 핵심 키워드를 제목 앞부분에 배치
+   - 숫자, 질문형, 비교형 활용 (예: "3가지 방법", "왜 ~할까?", "~vs~")
+   - 클릭 유도 문구 (예: "꿀팁", "후회없는", "직접 써본")
+
+2. 본문 SEO 최적화:
+   - 핵심 키워드 자연스럽게 5-7회 반복
+   - 연관 키워드/롱테일 키워드 포함
+   - 문단별 소주제로 구조화 (C-Rank 대응)
+   - 질문-답변 형식 자연스럽게 녹이기 (AEO 대응)
+
+3. 분량: 1,500자 이상 (공백 포함)
+
+4. 문체: "~${config.suffix}" 체로 통일
+   - 자연스러운 구어체
+   - 경험 기반 서술
+
+5. 절대 금지:
+   - 이모지/특수문자 사용 금지
+   - "~습니다/~입니다" 딱딱한 존댓말 금지
    - 번호 매기기(1. 2. 3.) 금지
-   - "Q.", "A." 형식의 Q&A 금지
-   - "[서론]", "[본문]", "[결론]" 같은 구조 표시 금지
 
-5. 반드시 할 것:
-   - 첫 문장부터 바로 본론으로 시작
-   - 마치 친한 손님에게 말하듯 자연스럽게
-   - 실제 경험담처럼 ("제가 직접 써봤는데요", "손님들 반응 보니까")
-   - 중간중간 짧은 감탄사 ("진짜", "확실히", "솔직히")
-   - 자연스러운 문단 구분 (3-4문장마다)
-
-6. 구조 (표시하지 말고 자연스럽게 흐르게):
-   - 도입: 왜 이걸 소개하게 됐는지 간단히
-   - 본문: 장점 2-3개, 사용 팁, 실제 경험
-   - 마무리: 추천 이유 정리
-
-[제목 생성]
-글 맨 위에 SEO 최적화된 매력적인 제목을 작성하세요.
-제목 형식: [제목] 실제 제목 내용
-- 검색 키워드 포함
-- 호기심 유발 (숫자, 질문, 비교 활용)
-- 15-30자 사이
-예시: [제목] 디퓨저 위치 하나 바꿨더니 잠이 쏟아지네요`
+6. 해시태그 최적화:
+   - 대표 키워드 3-5개 (검색량 높은 것)
+   - 세부 키워드 5-7개 (구체적인 것)
+   - 연관 키워드 5-7개 (관련 주제)
+   - 지역/시즌 키워드 (해당시)
+   - 예시: #디퓨저 #디퓨저추천 #수면디퓨저 #숙면 #잠잘오는향 #아로마 #라벤더디퓨저 #침실인테리어`
 
   try {
     const response = await fetch(
@@ -153,39 +162,56 @@ app.post('/api/generate', async (c) => {
     // 이모지 제거
     generatedText = removeAllEmojis(generatedText)
     
-    // 제목 추출 (여러 패턴 지원)
+    // V5.1: 제목, 본문, 해시태그 분리 추출
     let title = ''
-    const titlePatterns = [
-      /\[제목\]\s*(.+?)(\n|$)/,
-      /^#\s*(.+?)(\n|$)/,
-      /^(.+?)(\n\n)/
-    ]
+    let content = ''
+    let hashtags = ''
     
-    for (const pattern of titlePatterns) {
-      const match = generatedText.match(pattern)
-      if (match && match[1].length < 50) {
-        title = match[1].trim()
-        generatedText = generatedText.replace(pattern, '').trim()
-        break
+    // ===제목=== 패턴으로 추출
+    const titleMatch = generatedText.match(/===제목===\s*([\s\S]*?)(?====본문===|$)/)
+    if (titleMatch) {
+      title = titleMatch[1].trim()
+    }
+    
+    // ===본문=== 패턴으로 추출
+    const contentMatch = generatedText.match(/===본문===\s*([\s\S]*?)(?====해시태그===|$)/)
+    if (contentMatch) {
+      content = contentMatch[1].trim()
+    }
+    
+    // ===해시태그=== 패턴으로 추출
+    const hashtagMatch = generatedText.match(/===해시태그===\s*([\s\S]*)$/)
+    if (hashtagMatch) {
+      hashtags = hashtagMatch[1].trim()
+    }
+    
+    // 패턴이 없으면 기존 방식으로 폴백
+    if (!title && !content) {
+      // 첫 줄을 제목으로
+      const lines = generatedText.split('\n').filter(l => l.trim())
+      if (lines.length > 0) {
+        title = lines[0].replace(/^[#\[\]제목:]+\s*/g, '').trim()
+        content = lines.slice(1).join('\n').trim()
+      }
+      // 해시태그 추출 시도
+      const hashtagExtract = content.match(/(#\S+\s*)+$/m)
+      if (hashtagExtract) {
+        hashtags = hashtagExtract[0].trim()
+        content = content.replace(hashtagExtract[0], '').trim()
       }
     }
     
-    // 제목이 없으면 첫 줄에서 추출
-    if (!title) {
-      const firstLine = generatedText.split('\n')[0]
-      if (firstLine && firstLine.length < 50) {
-        title = firstLine.trim()
-        generatedText = generatedText.substring(firstLine.length).trim()
-      }
-    }
+    // 본문 포맷팅
+    const formattedContent = formatForCopyPaste(content, enableReadability)
     
-    // V5.0: 복사 붙여넣기 최적화 (가이드 문구 없이 바로 사용 가능)
-    const formattedResult = formatForCopyPaste(generatedText, enableReadability)
+    // 해시태그 정리 (중복 제거, 정렬)
+    const cleanHashtags = [...new Set(hashtags.match(/#[^\s#]+/g) || [])].join(' ')
     
     return c.json({ 
       title: title,
-      result: formattedResult,
-      rawLength: generatedText.length,
+      content: formattedContent,
+      hashtags: cleanHashtags,
+      rawLength: content.length,
       style: config.name,
       readabilityApplied: enableReadability
     })
@@ -273,7 +299,7 @@ app.get('/', (c) => {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>XIVIX SEO MASTER V5</title>
+  <title>XIVIX SEO MASTER V5.1</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
   <style>
@@ -297,21 +323,24 @@ app.get('/', (c) => {
       <div class="bg-gray-900 p-6 text-white">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h1 class="text-xl md:text-2xl font-black italic tracking-tight">XIVIX SEO MASTER V5</h1>
-            <p class="text-[10px] text-gray-400 uppercase tracking-[0.2em] mt-1">Natural Tone | Auto Title | Copy Ready</p>
+            <h1 class="text-xl md:text-2xl font-black italic tracking-tight">XIVIX SEO MASTER V5.1</h1>
+            <p class="text-[10px] text-gray-400 uppercase tracking-[0.2em] mt-1">SEO | AEO | C-Rank | GEO | Auto Hashtag</p>
           </div>
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 flex-wrap">
             <button onclick="copyTitle()" class="text-[10px] bg-gray-800 hover:bg-gray-700 px-3 py-2 rounded transition">
-              <i class="fas fa-heading mr-1"></i>제목 복사
+              <i class="fas fa-heading mr-1"></i>제목
             </button>
             <button onclick="copyToClipboard()" class="text-[10px] bg-gray-800 hover:bg-gray-700 px-3 py-2 rounded transition">
-              <i class="fas fa-copy mr-1"></i>본문 복사
+              <i class="fas fa-copy mr-1"></i>본문
+            </button>
+            <button onclick="copyHashtags()" class="text-[10px] bg-purple-600 hover:bg-purple-700 px-3 py-2 rounded transition">
+              <i class="fas fa-hashtag mr-1"></i>해시태그
             </button>
             <button onclick="copyAll()" class="text-[10px] bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded transition">
-              <i class="fas fa-clipboard mr-1"></i>전체 복사
+              <i class="fas fa-clipboard mr-1"></i>전체
             </button>
             <button onclick="downloadTxt()" class="text-[10px] bg-green-600 hover:bg-green-700 px-3 py-2 rounded transition">
-              <i class="fas fa-download mr-1"></i>TXT 저장
+              <i class="fas fa-download mr-1"></i>TXT
             </button>
           </div>
         </div>
@@ -382,51 +411,53 @@ app.get('/', (c) => {
           
           <div
             id="preview"
-            class="w-full h-[450px] md:h-[500px] p-6 bg-white border border-gray-100 rounded-2xl overflow-y-auto text-sm text-gray-700 whitespace-pre-wrap shadow-inner"
-          >결과가 여기에 표시됩니다.
-
-
-[XIVIX SEO MASTER V5 특징]
-
-1. 매장 직원이 직접 쓴 듯한 자연스러운 톤
-2. 체험단/광고 느낌 완전 제거
-3. SEO 최적화 제목 자동 생성
-4. 이모지 없이 깔끔하게
-5. 바로 복사해서 네이버 블로그에 사용 가능
-
-
-[사용 방법]
-1. 주제 입력
-2. 스타일 선택 (A/B/C형)
-3. 블로그 글 생성 클릭
-4. 전체 복사 후 네이버 에디터에 붙여넣기</div>
+            class="w-full h-[350px] md:h-[380px] p-6 bg-white border border-gray-100 rounded-2xl overflow-y-auto text-sm text-gray-700 whitespace-pre-wrap shadow-inner mb-4"
+          >본문이 여기에 표시됩니다.</div>
+          
+          <!-- Hashtag Section -->
+          <div class="mb-2">
+            <div class="flex justify-between items-center mb-2">
+              <h3 class="text-[10px] font-black text-gray-400 tracking-[0.2em] uppercase">해시태그 (SEO 최적화)</h3>
+              <button onclick="copyHashtags()" class="text-[10px] bg-purple-100 text-purple-700 hover:bg-purple-200 px-3 py-1 rounded-full transition">
+                <i class="fas fa-hashtag mr-1"></i>해시태그 복사
+              </button>
+            </div>
+            <div
+              id="hashtags"
+              class="p-4 bg-purple-50 rounded-xl border border-purple-200 text-sm text-purple-800 min-h-[60px]"
+            >해시태그가 여기에 표시됩니다</div>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Guide Cards -->
-    <div class="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div class="mt-6 grid grid-cols-2 md:grid-cols-5 gap-3">
       <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-red-500">
-        <h4 class="font-bold text-gray-800 text-xs mb-1">자연스러운 톤</h4>
-        <p class="text-[10px] text-gray-600">매장 직원이 직접 쓴 느낌</p>
+        <h4 class="font-bold text-gray-800 text-xs mb-1">SEO 최적화</h4>
+        <p class="text-[10px] text-gray-600">검색 노출 극대화</p>
       </div>
       <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-blue-500">
-        <h4 class="font-bold text-gray-800 text-xs mb-1">제목 자동 생성</h4>
-        <p class="text-[10px] text-gray-600">SEO 최적화 제목 포함</p>
+        <h4 class="font-bold text-gray-800 text-xs mb-1">제목 자동생성</h4>
+        <p class="text-[10px] text-gray-600">클릭률 높은 제목</p>
+      </div>
+      <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-purple-500">
+        <h4 class="font-bold text-gray-800 text-xs mb-1">해시태그 15개+</h4>
+        <p class="text-[10px] text-gray-600">자동 생성</p>
       </div>
       <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-green-500">
-        <h4 class="font-bold text-gray-800 text-xs mb-1">바로 복사</h4>
-        <p class="text-[10px] text-gray-600">수정 없이 바로 사용</p>
+        <h4 class="font-bold text-gray-800 text-xs mb-1">C-Rank/AEO</h4>
+        <p class="text-[10px] text-gray-600">네이버 알고리즘 대응</p>
       </div>
       <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-gray-500">
         <h4 class="font-bold text-gray-800 text-xs mb-1">이모지 0%</h4>
-        <p class="text-[10px] text-gray-600">저품질 방지 완벽 대응</p>
+        <p class="text-[10px] text-gray-600">저품질 방지</p>
       </div>
     </div>
 
     <!-- Footer -->
     <div class="mt-6 text-center text-gray-400 text-[10px] pb-4">
-      <p>XIVIX SEO MASTER V5 | Natural Tone | Auto Title | Copy Ready</p>
+      <p>XIVIX SEO MASTER V5.1 | SEO | AEO | C-Rank | GEO | Auto Hashtag</p>
     </div>
   </div>
 
@@ -474,12 +505,17 @@ app.get('/', (c) => {
         document.getElementById('title-box').textContent = currentTitle;
         
         // 본문 표시
-        document.getElementById('preview').textContent = data.result;
-        document.getElementById('char-count').textContent = data.result.length + '자';
+        document.getElementById('preview').textContent = data.content || data.result;
+        document.getElementById('char-count').textContent = (data.content || data.result).length + '자';
+        
+        // 해시태그 표시
+        const hashtags = data.hashtags || '';
+        document.getElementById('hashtags').textContent = hashtags || '해시태그가 생성되지 않았습니다';
+        
         document.getElementById('status-text').textContent = 
           '생성 완료 (' + data.style + ', ' + data.rawLength + '자)';
         
-        showToast('블로그 글이 생성되었습니다!', 'success');
+        showToast('제목 + 본문 + 해시태그가 생성되었습니다!', 'success');
       } catch (error) {
         showToast('생성 중 오류가 발생했습니다.', 'error');
         document.getElementById('status-text').textContent = '오류 발생';
@@ -507,6 +543,16 @@ app.get('/', (c) => {
       showToast('제목이 복사되었습니다!', 'success');
     }
     
+    function copyHashtags() {
+      const hashtags = document.getElementById('hashtags').textContent;
+      if (!hashtags || hashtags.includes('해시태그가 여기에') || hashtags.includes('생성되지 않았습니다')) {
+        showToast('먼저 글을 생성해주세요!', 'warning');
+        return;
+      }
+      navigator.clipboard.writeText(hashtags);
+      showToast('해시태그가 복사되었습니다!', 'success');
+    }
+    
     async function copyToClipboard() {
       const preview = document.getElementById('preview').textContent;
       if (!preview || preview.includes('결과가 여기에')) {
@@ -525,17 +571,18 @@ app.get('/', (c) => {
     async function copyAll() {
       const title = document.getElementById('title-box').textContent;
       const preview = document.getElementById('preview').textContent;
+      const hashtags = document.getElementById('hashtags').textContent;
       
-      if (!preview || preview.includes('결과가 여기에')) {
+      if (!preview || preview.includes('본문이 여기에')) {
         showToast('먼저 글을 생성해주세요!', 'warning');
         return;
       }
       
-      const fullText = title + '\\n\\n' + preview;
+      const fullText = title + '\\n\\n' + preview + '\\n\\n' + hashtags;
       
       try {
         await navigator.clipboard.writeText(fullText);
-        showToast('제목 + 본문이 복사되었습니다!', 'success');
+        showToast('제목 + 본문 + 해시태그가 복사되었습니다!', 'success');
       } catch (error) {
         fallbackCopy(fullText);
       }
@@ -544,13 +591,14 @@ app.get('/', (c) => {
     function downloadTxt() {
       const title = document.getElementById('title-box').textContent;
       const preview = document.getElementById('preview').textContent;
+      const hashtags = document.getElementById('hashtags').textContent;
       
-      if (!preview || preview.includes('결과가 여기에')) {
+      if (!preview || preview.includes('본문이 여기에')) {
         showToast('먼저 글을 생성해주세요!', 'warning');
         return;
       }
       
-      const fullText = title + '\\n\\n' + preview;
+      const fullText = title + '\\n\\n' + preview + '\\n\\n' + hashtags;
       const blob = new Blob([fullText], { type: 'text/plain;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');

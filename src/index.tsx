@@ -13,7 +13,7 @@ app.use('/api/*', cors())
 app.get('/api/health', (c) => {
   return c.json({
     status: 'ok',
-    version: 'V7.0',
+    version: 'V7.1',
     timestamp: new Date().toISOString(),
     services: {
       transform: 'active',
@@ -1148,26 +1148,62 @@ app.get('/', (c) => {
     
     /* Dark Mode Support */
     @media (prefers-color-scheme: dark) {
-      :root {
-        --gray-50: #1e1e1e;
-        --gray-100: #252525;
-        --gray-200: #333333;
-        --gray-600: #aaaaaa;
-        --gray-700: #e0e0e0;
-        --white: #121212;
-      }
-      
       body { background-color: #121212; color: #e0e0e0; }
       .card { background: #1e1e1e; }
       .left-panel { background: #171717; border-color: #333; }
-      .result-box { background: #1e1e1e; border-color: #333; }
-      .result-header { background: #171717; border-color: #333; }
-      .input, .textarea { background: #1e1e1e; border-color: #333; color: #e0e0e0; }
-      .cat-btn, .tone-btn { background: #1e1e1e; border-color: #333; color: #e0e0e0; }
-      .cat-btn.active { background: #0a3d1f; border-color: #03C75A; }
-      .preview-box:hover, .result-content:hover { background: #252525; }
-      .status-box { background: #252525; }
-      .info-card { background: #1e1e1e; }
+      .right-panel { background: #1a1a1a; }
+      
+      /* Result boxes - 텍스트 가시성 확보 */
+      .result-box { background: #2a2a2a; border-color: #444; }
+      .result-header { background: #222; border-color: #444; color: #ccc; }
+      .result-title { color: #bbb; }
+      .result-content { color: #e0e0e0; }
+      .result-content:hover { background: #333; }
+      
+      /* Preview box - 본문 영역 */
+      .preview-box { color: #e0e0e0; background: #2a2a2a; }
+      .preview-box:hover { background: #333; }
+      
+      /* Hashtag */
+      .hashtag-content { color: #05d662; background: #1a2e1f; }
+      .hashtag-content:hover { background: #0d3d1f; }
+      
+      /* Input fields */
+      .input, .textarea { background: #2a2a2a; border-color: #444; color: #e0e0e0; }
+      .input::placeholder, .textarea::placeholder { color: #777; }
+      
+      /* Buttons */
+      .cat-btn, .tone-btn { background: #2a2a2a; border-color: #444; color: #e0e0e0; }
+      .cat-btn:hover, .tone-btn:hover { border-color: #05d662; }
+      .cat-btn.active { background: #0a3d1f; border-color: #03C75A; color: #03C75A; }
+      .tone-btn.active { background: #444; border-color: #666; color: #fff; }
+      .btn-desc { color: #888; }
+      
+      /* Labels */
+      .label { color: #999; }
+      
+      /* Status box */
+      .status-box { background: #2a2a2a; color: #aaa; }
+      
+      /* Info cards */
+      .info-card { background: #2a2a2a; }
+      .info-card h4 { color: #ddd; }
+      .info-card p { color: #999; }
+      
+      /* Char count */
+      .char-count span { background: #333; color: #aaa; }
+      .char-count .pure { background: #0a3d1f; color: #03C75A; }
+      
+      /* Tab buttons */
+      .tabs { border-color: #333; background: #1a1a1a; }
+      .tab-btn { color: #888; }
+      .tab-btn:hover { color: #05d662; }
+      .tab-btn.active { color: #03C75A; border-bottom-color: #03C75A; }
+      
+      /* Footer */
+      .footer { color: #777; }
+      
+      /* Misc */
       strong, b { color: #fff; }
       a { color: #05d662; }
     }
@@ -1184,7 +1220,7 @@ app.get('/', (c) => {
         <div class="header-content">
           <div>
             <h1>XIVIX SEO MASTER</h1>
-            <p class="header-subtitle">SEO | AEO | C-Rank | GEO | V7.0</p>
+            <p class="header-subtitle">SEO | AEO | C-Rank | GEO | V7.1</p>
           </div>
           <div class="header-actions">
             <button onclick="copyTitle()" class="copy-btn dark">제목</button>

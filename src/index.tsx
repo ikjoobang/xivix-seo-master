@@ -13,7 +13,7 @@ app.use('/api/*', cors())
 app.get('/api/health', (c) => {
   return c.json({
     status: 'ok',
-    version: 'V5.1',
+    version: 'V5.2',
     timestamp: new Date().toISOString(),
     services: {
       transform: 'active',
@@ -84,48 +84,46 @@ app.post('/api/generate', async (c) => {
   
   const config = styleConfigs[style as keyof typeof styleConfigs] || styleConfigs.A
   
-  // V5.1: SEO/AEO/C-Rank/GEO 최적화 프롬프트 (제목 + 내용 + 해시태그)
+  // V5.2: SEO/AEO/C-Rank/GEO 최적화 프롬프트 (제목 + 내용 + 해시태그)
   const systemPrompt = `${config.prompt}
 
-[출력 형식 - 반드시 이 형식으로 출력]
+[중요] 반드시 아래 형식으로 출력하세요. 형식을 정확히 지켜주세요!
+
 ===제목===
-(SEO 최적화 제목 - 검색 키워드 포함, 호기심 유발, 15-30자)
+여기에 SEO 최적화 제목 작성 (주제와 다르게, 클릭하고 싶은 매력적인 제목으로!)
 
 ===본문===
-(1,500자 이상의 블로그 본문)
+여기에 1,500자 이상의 블로그 본문 작성
 
 ===해시태그===
-(SEO 최적화 해시태그 15-20개, 띄어쓰기 없이 #태그 형식)
+여기에 #해시태그 15-20개 작성
 
-[SEO/AEO/C-Rank/GEO 최적화 조건]
-1. 제목 최적화:
-   - 핵심 키워드를 제목 앞부분에 배치
-   - 숫자, 질문형, 비교형 활용 (예: "3가지 방법", "왜 ~할까?", "~vs~")
-   - 클릭 유도 문구 (예: "꿀팁", "후회없는", "직접 써본")
+[제목 작성 규칙 - 매우 중요!]
+- 주제를 그대로 쓰지 말고, 클릭하고 싶은 제목으로 변환
+- 예시:
+  주제 "겨울철 디퓨저 추천" → 제목 "디퓨저 하나 바꿨더니 잠이 쏟아져요 (겨울 꿀잠 비법)"
+  주제 "봄철 알레르기 예방" → 제목 "콧물 재채기 끝! 약 없이 알레르기 잡는 3가지 방법"
+  주제 "다이어트 식단" → 제목 "배고프지 않게 5kg 빠지는 식단 (직접 해봄)"
+- 숫자, 질문, 경험담, 비교 활용
+- 15-30자 사이
+- 검색 키워드 포함
 
-2. 본문 SEO 최적화:
-   - 핵심 키워드 자연스럽게 5-7회 반복
-   - 연관 키워드/롱테일 키워드 포함
-   - 문단별 소주제로 구조화 (C-Rank 대응)
-   - 질문-답변 형식 자연스럽게 녹이기 (AEO 대응)
+[본문 SEO 최적화]
+- 핵심 키워드 5-7회 자연스럽게 반복
+- 문단별 소주제로 구조화 (C-Rank)
+- 질문-답변 흐름 자연스럽게 녹이기 (AEO)
+- 분량: 1,500자 이상
 
-3. 분량: 1,500자 이상 (공백 포함)
+[문체 규칙]
+- "~${config.suffix}" 체로 통일
+- 자연스러운 구어체, 경험 기반 서술
+- 이모지/특수문자 절대 금지
+- "~습니다/~입니다" 딱딱한 말투 금지
 
-4. 문체: "~${config.suffix}" 체로 통일
-   - 자연스러운 구어체
-   - 경험 기반 서술
-
-5. 절대 금지:
-   - 이모지/특수문자 사용 금지
-   - "~습니다/~입니다" 딱딱한 존댓말 금지
-   - 번호 매기기(1. 2. 3.) 금지
-
-6. 해시태그 최적화:
-   - 대표 키워드 3-5개 (검색량 높은 것)
-   - 세부 키워드 5-7개 (구체적인 것)
-   - 연관 키워드 5-7개 (관련 주제)
-   - 지역/시즌 키워드 (해당시)
-   - 예시: #디퓨저 #디퓨저추천 #수면디퓨저 #숙면 #잠잘오는향 #아로마 #라벤더디퓨저 #침실인테리어`
+[해시태그 규칙]
+- 15-20개 생성
+- 대표 키워드 + 세부 키워드 + 연관 키워드 조합
+- 예시: #겨울디퓨저 #디퓨저추천 #숙면 #아로마 #향기인테리어`
 
   try {
     const response = await fetch(
@@ -162,27 +160,53 @@ app.post('/api/generate', async (c) => {
     // 이모지 제거
     generatedText = removeAllEmojis(generatedText)
     
-    // V5.1: 제목, 본문, 해시태그 분리 추출
+    // V5.2: 제목, 본문, 해시태그 분리 추출 (강화된 로직)
     let title = ''
     let content = ''
     let hashtags = ''
     
-    // ===제목=== 패턴으로 추출
-    const titleMatch = generatedText.match(/===제목===\s*([\s\S]*?)(?====본문===|$)/)
-    if (titleMatch) {
-      title = titleMatch[1].trim()
+    // ===제목=== 패턴으로 추출 (다양한 변형 지원)
+    const titlePatterns = [
+      /===\s*제목\s*===\s*([\s\S]*?)(?=\n*===\s*본문|$)/i,
+      /\[제목\]\s*:?\s*(.+?)(?:\n|$)/i,
+      /^제목\s*:?\s*(.+?)(?:\n|$)/im
+    ]
+    
+    for (const pattern of titlePatterns) {
+      const match = generatedText.match(pattern)
+      if (match && match[1].trim()) {
+        title = match[1].trim().replace(/^["']|["']$/g, '') // 따옴표 제거
+        break
+      }
     }
     
     // ===본문=== 패턴으로 추출
-    const contentMatch = generatedText.match(/===본문===\s*([\s\S]*?)(?====해시태그===|$)/)
-    if (contentMatch) {
-      content = contentMatch[1].trim()
+    const contentPatterns = [
+      /===\s*본문\s*===\s*([\s\S]*?)(?=\n*===\s*해시태그|$)/i,
+      /\[본문\]\s*([\s\S]*?)(?=\n*\[해시태그\]|#\S|$)/i
+    ]
+    
+    for (const pattern of contentPatterns) {
+      const match = generatedText.match(pattern)
+      if (match && match[1].trim()) {
+        content = match[1].trim()
+        break
+      }
     }
     
     // ===해시태그=== 패턴으로 추출
-    const hashtagMatch = generatedText.match(/===해시태그===\s*([\s\S]*)$/)
-    if (hashtagMatch) {
-      hashtags = hashtagMatch[1].trim()
+    const hashtagPatterns = [
+      /===\s*해시태그\s*===\s*([\s\S]*)$/i,
+      /\[해시태그\]\s*([\s\S]*)$/i,
+      /((?:#[^\s#]+\s*){5,})$/  // 해시태그 5개 이상 연속
+    ]
+    
+    for (const pattern of hashtagPatterns) {
+      const match = generatedText.match(pattern)
+      if (match && match[1].trim()) {
+        hashtags = match[1].trim()
+        break
+      }
     }
     
     // 패턴이 없으면 기존 방식으로 폴백
@@ -190,15 +214,20 @@ app.post('/api/generate', async (c) => {
       // 첫 줄을 제목으로
       const lines = generatedText.split('\n').filter(l => l.trim())
       if (lines.length > 0) {
-        title = lines[0].replace(/^[#\[\]제목:]+\s*/g, '').trim()
+        title = lines[0].replace(/^[#\[\]제목:=]+\s*/g, '').trim()
         content = lines.slice(1).join('\n').trim()
       }
       // 해시태그 추출 시도
-      const hashtagExtract = content.match(/(#\S+\s*)+$/m)
+      const hashtagExtract = content.match(/((?:#[^\s#]+\s*){5,})$/m)
       if (hashtagExtract) {
         hashtags = hashtagExtract[0].trim()
         content = content.replace(hashtagExtract[0], '').trim()
       }
+    }
+    
+    // 제목이 비어있으면 주제 기반으로 생성
+    if (!title) {
+      title = topic + ' 완벽 가이드'
     }
     
     // 본문 포맷팅

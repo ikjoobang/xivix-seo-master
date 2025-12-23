@@ -201,10 +201,12 @@ SEO 최적화된 클릭하고 싶은 제목 (15-30자, 숫자/질문/감정 활�
 - 숫자, 질문, 경험담, 비교 활용
 - 예: "겨울 디퓨저" → "디퓨저 하나로 숙면 끝! 겨울 꿀잠 비법 3가지"
 
-[본문 작성 규칙]
+[본문 작성 규칙 - 네이버 모바일 앱 최적화 필수!]
 - 순수 읽는 글만 1,700자 이상 (미디어 가이드 제외)
 - 5개 이상 소제목으로 구조화
-- 각 문단 2-3문장으로 짧게 (모바일 가독성)
+- 각 문단 2-3문장으로 짧게 작성 (모바일에서 한 화면에 2-3줄만 보임)
+- 문장과 문장 사이 충분한 여백
+- 긴 문장 금지 (한 문장 40자 이내 권장)
 - 구체적인 경험담/예시 포함
 
 [금지 사항]
@@ -467,22 +469,22 @@ function formatForCopyPaste(text: string, enableReadability: boolean): string {
     .replace(/---/g, '')
   
   if (enableReadability) {
-    // 문단 단위로 여백 추가
-    const paragraphs = cleaned.split(/\n\n+/)
-    cleaned = paragraphs.map(p => {
-      const sentences = p.split(/(?<=[.!?])\s+/)
-      let result = ''
-      let count = 0
-      for (const sentence of sentences) {
-        result += sentence + ' '
-        count++
-        if (count >= 2) {
-          result = result.trim() + '\n\n'
-          count = 0
-        }
+    // 네이버 모바일 앱 최적화: 2문장마다 줄바꿈
+    const sentences = cleaned.split(/(?<=[.!?])\s+/)
+    let result = ''
+    let count = 0
+    
+    for (const sentence of sentences) {
+      if (!sentence.trim()) continue
+      result += sentence.trim() + ' '
+      count++
+      // 2문장마다 줄바꿈 (모바일에서 2-3줄 단위로 끊어 읽기)
+      if (count >= 2) {
+        result = result.trim() + '\n\n'
+        count = 0
       }
-      return result.trim()
-    }).join('\n\n')
+    }
+    cleaned = result.trim()
   }
   
   cleaned = cleaned.replace(/\n{3,}/g, '\n\n')
@@ -731,47 +733,69 @@ app.get('/', (c) => {
           
           <!-- Title Section -->
           <div class="mb-3 md:mb-4">
-            <label class="block text-[9px] md:text-[10px] font-black text-gray-400 mb-2 uppercase tracking-widest">생성된 제목 (SEO 최적화)</label>
-            <div id="title-box" class="p-3 md:p-4 bg-blue-50 rounded-xl border border-blue-200 text-base md:text-lg font-bold text-gray-800 min-h-[48px] md:min-h-[56px] flex items-center">
+            <div class="flex justify-between items-center mb-2">
+              <label class="text-[9px] md:text-[10px] font-black text-gray-400 uppercase tracking-widest">생성된 제목 (SEO 최적화)</label>
+              <button onclick="copyTitle()" class="text-[9px] md:text-[10px] bg-blue-100 text-blue-700 hover:bg-blue-200 px-3 py-1 rounded-full transition font-medium">
+                제목 복사
+              </button>
+            </div>
+            <div id="title-box" class="p-3 md:p-4 bg-blue-50 rounded-xl border border-blue-200 text-base md:text-lg font-bold text-gray-800 min-h-[48px] md:min-h-[56px] flex items-center cursor-pointer hover:bg-blue-100 transition" onclick="copyTitle()">
               제목이 여기에 표시됩니다
             </div>
           </div>
           
           <!-- Content Section -->
           <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 md:gap-3 mb-2">
-            <h3 class="text-[9px] md:text-[10px] font-black text-gray-400 tracking-[0.15em] md:tracking-[0.2em] uppercase">본문 내용</h3>
-            <div class="flex gap-2">
+            <h3 class="text-[9px] md:text-[10px] font-black text-gray-400 tracking-[0.15em] md:tracking-[0.2em] uppercase">본문 내용 (네이버 모바일 최적화)</h3>
+            <div class="flex gap-2 items-center">
               <span id="char-count" class="text-[9px] md:text-[10px] text-gray-400 bg-gray-100 px-2 md:px-3 py-1 rounded-full">0자</span>
               <span id="pure-char-count" class="text-[9px] md:text-[10px] text-green-600 bg-green-100 px-2 md:px-3 py-1 rounded-full">순수: 0자</span>
+              <button onclick="copyToClipboard()" class="text-[9px] md:text-[10px] bg-gray-700 text-white hover:bg-gray-800 px-3 py-1 rounded-full transition font-medium">
+                본문 복사
+              </button>
             </div>
           </div>
           
           <div
             id="preview"
             class="w-full h-[280px] md:h-[350px] p-4 md:p-6 bg-white border border-gray-100 rounded-2xl overflow-y-auto text-sm text-gray-700 whitespace-pre-wrap shadow-inner mb-3 md:mb-4"
+            style="line-height: 2.2;"
           >본문이 여기에 표시됩니다.
 
-[📷 이미지 삽입 권장: 주제를 대표하는 메인 이미지]
+네이버 모바일 앱 최적화:
+- 2-3문장마다 자동 줄바꿈
+- line-height 2.2 적용
+- 모바일에서 읽기 편한 구조
 
-미디어 삽입 위치가 표시됩니다:
-• [📷 이미지] - 이미지 삽입 권장 위치
-• [🎬 동영상] - 영상/Shorts 삽입 권장 위치
-• [😊 이모티콘] - 네이버 스티커 삽입 권장 위치
-• [💬 인용구] - 네이버 인용구 기능 활용 위치
-• [🖼️ 배너] - CTA 배너 이미지 삽입 위치</div>
+미디어 삽입 위치 표시:
+[이미지 삽입] - 이미지 넣을 위치
+[동영상 삽입] - 영상/Shorts 넣을 위치
+[스티커 삽입] - 네이버 스티커 넣을 위치
+[인용구 삽입] - 네이버 인용구 활용 위치</div>
           
           <!-- Hashtag Section -->
           <div class="mb-2">
             <div class="flex justify-between items-center mb-2">
               <h3 class="text-[9px] md:text-[10px] font-black text-gray-400 tracking-[0.15em] md:tracking-[0.2em] uppercase">해시태그 (SEO 최적화)</h3>
-              <button onclick="copyHashtags()" class="text-[9px] md:text-[10px] bg-purple-100 text-purple-700 hover:bg-purple-200 px-2 md:px-3 py-1 rounded-full transition">
-                <i class="fas fa-hashtag mr-1"></i>복사
+              <button onclick="copyHashtags()" class="text-[9px] md:text-[10px] bg-purple-600 text-white hover:bg-purple-700 px-3 py-1 rounded-full transition font-medium">
+                해시태그 복사
               </button>
             </div>
             <div
               id="hashtags"
-              class="p-3 md:p-4 bg-purple-50 rounded-xl border border-purple-200 text-xs md:text-sm text-purple-800 min-h-[50px] md:min-h-[60px]"
+              class="p-3 md:p-4 bg-purple-50 rounded-xl border border-purple-200 text-xs md:text-sm text-purple-800 min-h-[50px] md:min-h-[60px] cursor-pointer hover:bg-purple-100 transition"
+              onclick="copyHashtags()"
             >해시태그가 여기에 표시됩니다</div>
+          </div>
+          
+          <!-- Copy All & Download Buttons -->
+          <div class="flex gap-2 mt-4">
+            <button onclick="copyAll()" class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition text-sm">
+              전체 복사 (제목+본문+해시태그)
+            </button>
+            <button onclick="downloadTxt()" class="py-3 px-6 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition text-sm">
+              TXT 저장
+            </button>
           </div>
         </div>
       </div>
